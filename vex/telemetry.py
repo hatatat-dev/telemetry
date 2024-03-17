@@ -1,9 +1,9 @@
 # ---------------------------------------------------------------------------- #
 #                                                                              #
-# 	Module:       telemetry.py                                                 #
-# 	Author:       SystemError                                                  #
-# 	Created:      3/16/2024, 10:52:27 AM                                       #
-# 	Description:  V5 project                                                   #
+#   Module:       telemetry.py                                                 #
+#   Author:       SystemError                                                  #
+#   Created:      3/16/2024, 10:52:27 AM                                       #
+#   Description:  V5 project                                                   #
 #                                                                              #
 # ---------------------------------------------------------------------------- #
 
@@ -316,6 +316,13 @@ class TeleMotor(Motor):
                 decorate_method_call(self, method, tag, getattr(self, method)),
             )
 
+class TeleInertial(Inertial):
+    """Inertial with a default name"""
+
+    def __init__(self, *args, name: str = "inertial", tag: str = "", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+        self.tag = tag
 
 class TeleController(Controller):
     """Controller that saves telemetry records when its methods are called"""
@@ -352,13 +359,14 @@ class TeleController(Controller):
                 + arg,
             )
 
-    def __init__(self, *args, name: str = "", tag: str = "", **kwargs):
+    def __init__(self, *args, name: str = "controller", tag: str = "", **kwargs):
         super().__init__(*args, **kwargs)
         self.name = name
         self.tag = tag
 
-    def setup(self):
         for axis_name in ["axis1", "axis2", "axis3", "axis4"]:
+            # TODO: decide how to save telemetry for controller axes
+            # Saving on each `changed` is probably too noisy and slow
             axis: Controller.Axis = getattr(self, axis_name)
 
         for button_name in [
@@ -384,9 +392,8 @@ class TeleController(Controller):
             )
 
 
-controller = TeleController(PRIMARY, name="controller")
-controller.setup()
-inertial = Inertial(Ports.PORT2)
+controller = TeleController(PRIMARY)
+inertial = TeleInertial(Ports.PORT2)
 motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 
 
