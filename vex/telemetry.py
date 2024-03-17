@@ -16,7 +16,7 @@ from collections import namedtuple
 brain = Brain()
 
 # Tuple with header information for individual telemetry records
-RecordHeader = namedtuple("RecordHeader", ["timestamp", "cls", "id", "method", "tag"])
+RecordHeader = namedtuple("RecordHeader", ["timestamp", "cls", "name", "method", "tag"])
 
 # Tuple with telemetry record
 Record = namedtuple("Record", ["header", "args"])
@@ -46,7 +46,7 @@ ControllerState = namedtuple(
 
 
 def get_controller_state_no_record(controller: Controller) -> ControllerState:
-    """Get state of a controller without writing telemetry record"""
+    """Get state of a controller without writing a telemetry record"""
     return ControllerState(
         controller.axis1.value(),
         controller.axis2.value(),
@@ -91,7 +91,7 @@ InertialState = namedtuple(
 
 
 def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
-    """Get state of a inertial without writing telemetry record"""
+    """Get state of a inertial without writing a telemetry record"""
     return InertialState(
         inertial.installed(),
         inertial.timestamp(),
@@ -107,15 +107,63 @@ def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
         inertial.acceleration(AxisType.XAXIS),
         inertial.acceleration(AxisType.YAXIS),
         inertial.acceleration(AxisType.ZAXIS),
-        TurnType.value(inertial.get_turn_type()),  # type: ignore
+        inertial.get_turn_type(),
+    )
+
+
+# State of a motor
+MotorState = namedtuple(
+    "MotorState",
+    [
+        "installed",
+        "timestamp",
+        "get_timeout",
+        "is_spinning",
+        "is_done",
+        "is_spinning_mode",
+        "direction",
+        "position",
+        "velocity",
+        "current",
+        "power",
+        "torque",
+        "efficiency",
+        "temperature",
+        "command",
+    ],
+)
+
+
+def get_motor_state_no_record(motor: Motor) -> MotorState:
+    """Get state of a motor without writing a telemetry record"""
+    return MotorState(
+        motor.installed(),
+        motor.timestamp(),
+        motor.get_timeout(),
+        motor.is_spinning(),
+        motor.is_done(),
+        motor.is_spinning_mode(),
+        motor.direction(),
+        motor.position(),
+        motor.velocity(),
+        motor.current(),
+        motor.power(),
+        motor.torque(),
+        motor.efficiency(),
+        motor.temperature(),
+        motor.command(),
     )
 
 
 def create_record_header(obj: object, method: str, tag: str) -> RecordHeader:
     """Create a header for telemetry record with current timestamp"""
-    return RecordHeader(
-        brain.timer.time(), obj.__class__.__name__, str(id(obj)), method, tag
-    )
+    cls = obj.__class__.__name__
+    if cls.startswith("Tele"):
+        cls = cls[4:]
+
+    name = getattr(obj, "name", "") or ("id_" + str(id(obj)))
+
+    return RecordHeader(brain.timer.time(), cls, name, method, tag)
 
 
 def create_method_call_record(
@@ -134,15 +182,22 @@ records = []
 # Name of the file for saving telemetry records in CSV (comma-separated values) format
 records_filename = "/records.csv"
 
-
 def format_csv_arg(arg) -> str:
     """Format CSV argument, treating zeroes and falsy values as empty"""
     if not arg:
         return ""
 
+    cls = arg.__class__.__name__
+    if cls.endswith("Type") or cls.endswith("Units"):
+        # vexEnum are these classes that need to be resolved to ordinal numbers
+        arg = arg.__class__.value(arg)
+        return str(arg) if arg else ""
+
+    # Convert everything, including bools, to floats
     s = str(float(arg))
 
     if len(s) > 2 and s[-2] == "." and s[-1] == "0":
+        # Remove trailing .0 for the integers
         return s[:-2]
 
     return s
@@ -170,6 +225,16 @@ def save_record(record: Record) -> None:
 def save_method_call(obj: object, method: str, tag: str, *args: float, **kwargs: float):
     """Save telemetry record for the method call"""
     save_record(create_method_call_record(obj, method, tag, *args, **kwargs))
+
+
+def decorate_method_call(obj, method: str, tag: str, original):
+    """Decorate method call by first saving a telemetry record for it"""
+
+    def decorated(*args, **kwargs):
+        save_method_call(obj, method, tag, *args, **kwargs)
+        return original(*args, **kwargs)
+
+    return decorated
 
 
 def get_controller_state(controller: Controller, tag: str) -> ControllerState:
@@ -202,8 +267,52 @@ def get_inertial_state(inertial: Inertial, tag: str) -> InertialState:
     return state
 
 
+def get_motor_state(motor: Motor, tag: str) -> MotorState:
+    """Get motor sensor state and save the telemetry record for that"""
+
+    state = get_motor_state_no_record(motor)
+
+    save_record(
+        Record(
+            create_record_header(motor, "state", tag),
+            state,
+        )
+    )
+
+    return state
+
+
+class TeleMotor(Motor):
+    """Motor that saves telemetry records when its methods are called"""
+
+    def __init__(self, port: int, *args, name: str = "", tag: str = "", **kwargs):
+        super().__init__(port, *args, **kwargs)
+        self.name = name
+        self.tag = tag
+
+        for method in [
+            "set_velocity",
+            "set_reversed",
+            "set_stopping",
+            "reset_position",
+            "set_position",
+            "set_timeout",
+            "spin",
+            "spin_to_position",
+            "spin_for",
+            "stop",
+            "set_max_torque",
+        ]:
+            setattr(
+                self,
+                method,
+                decorate_method_call(self, method, tag, getattr(self, method)),
+            )
+
+
 controller = Controller(PRIMARY)
 inertial = Inertial(Ports.PORT2)
+motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 
 
 brain.screen.print("clear", records_filename)
@@ -211,10 +320,14 @@ brain.screen.next_row()
 
 brain.sdcard.savefile(records_filename, bytearray())
 
-for _ in range(10):
+for step in range(2):
     get_controller_state(controller, "test")
     get_inertial_state(inertial, "test")
+    get_motor_state(motor_a, "test")
+    motor_a.spin(DirectionType.FORWARD if step % 2 == 0 else DirectionType.REVERSE)
     sleep(1000, MSEC)
+
+motor_a.stop()
 
 brain.screen.print("done")
 brain.screen.next_row()
