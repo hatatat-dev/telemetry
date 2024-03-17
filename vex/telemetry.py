@@ -182,6 +182,7 @@ records = []
 # Name of the file for saving telemetry records in CSV (comma-separated values) format
 records_filename = "/records.csv"
 
+
 def format_csv_arg(arg) -> str:
     """Format CSV argument, treating zeroes and falsy values as empty"""
     if not arg:
@@ -235,6 +236,12 @@ def decorate_method_call(obj, method: str, tag: str, original):
         return original(*args, **kwargs)
 
     return decorated
+
+
+def callback_with_record(obj, method, tag, callback, *args):
+    """Invoke callback after saving a telemetry record"""
+    save_method_call(obj, method, tag)
+    callback(*args)
 
 
 def get_controller_state(controller: Controller, tag: str) -> ControllerState:
@@ -310,7 +317,75 @@ class TeleMotor(Motor):
             )
 
 
-controller = Controller(PRIMARY)
+class TeleController(Controller):
+    """Controller that saves telemetry records when its methods are called"""
+
+    class TeleButton:
+        """Button wrapper that saves telemetry records for callbacks"""
+
+        def __init__(
+            self, controller: "TeleController", name: str, original: Controller.Button
+        ):
+            self.controller = controller
+            self.name = name
+            self.original = original
+
+        def pressing(self):
+            return self.original.pressing()
+
+        def pressed(self, callback: Callable[..., None], arg: tuple = ()):
+            return self.original.pressed(
+                callback_with_record,
+                (self.controller, self.name + "_pressed", self.controller.tag, callback)
+                + arg,
+            )
+
+        def released(self, callback: Callable[..., None], arg: tuple = ()):
+            return self.original.released(
+                callback_with_record,
+                (
+                    self.controller,
+                    self.name + "_released",
+                    self.controller.tag,
+                    callback,
+                )
+                + arg,
+            )
+
+    def __init__(self, *args, name: str = "", tag: str = "", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+        self.tag = tag
+
+    def setup(self):
+        for axis_name in ["axis1", "axis2", "axis3", "axis4"]:
+            axis: Controller.Axis = getattr(self, axis_name)
+
+        for button_name in [
+            "buttonL1",
+            "buttonL2",
+            "buttonR1",
+            "buttonR2",
+            "buttonUp",
+            "buttonDown",
+            "buttonLeft",
+            "buttonRight",
+            "buttonA",
+            "buttonB",
+            "buttonX",
+            "buttonY",
+        ]:
+            setattr(
+                self,
+                button_name,
+                TeleController.TeleButton(
+                    self, button_name, getattr(self, button_name)
+                ),
+            )
+
+
+controller = TeleController(PRIMARY, name="controller")
+controller.setup()
 inertial = Inertial(Ports.PORT2)
 motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 
@@ -319,6 +394,12 @@ brain.screen.print("clear", records_filename)
 brain.screen.next_row()
 
 brain.sdcard.savefile(records_filename, bytearray())
+
+controller.buttonA.pressed(print, ("buttonA", "pressed"))
+controller.buttonA.released(print, ("buttonA", "released"))
+
+controller.buttonB.pressed(print, ("buttonB", "pressed"))
+controller.buttonB.released(print, ("buttonB", "released"))
 
 for step in range(2):
     get_controller_state(controller, "test")
