@@ -16,6 +16,25 @@ controller.buttonA.released(print, ("buttonA", "released"))
 controller.buttonB.pressed(print, ("buttonB", "pressed"))
 controller.buttonB.released(print, ("buttonB", "released"))
 
+
+def detect_axis_threshold(
+    axis: TeleController.Axis, threshold: int, reported: List[int]
+) -> None:
+    """Detect and report axis value crossing a threshold"""
+
+    # Get the current value
+    value = axis.value()
+
+    # Compare the current value to the previous reported
+    if abs(value - reported[0]) >= threshold or value == 0 and reported[0] != 0:
+        # Report the current value
+        reported[0] = value
+        return value  # type: ignore
+
+
+controller.axis1.changed(detect_axis_threshold, (controller.axis1, 32, [0]))
+controller.axis2.changed(detect_axis_threshold, (controller.axis2, 32, [0]))
+
 for step in range(2):
     get_controller_state(controller, "test")
     get_inertial_state(inertial, "test")
