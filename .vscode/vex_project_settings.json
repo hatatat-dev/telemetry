@@ -4,7 +4,7 @@
 		"json": 2
 	},
 	"project": {
-		"name": "simple",
+		"name": "telemetry",
 		"description": "",
 		"creationDate": "3/16/2024, 10:52:27 AM",
 		"platform": "V5",
@@ -12,7 +12,7 @@
 		"slot": 1,
 		"sdkVersion": "V5_1_0_1_19",
 		"python": {
-			"main": "vex/simple.py"
+			"main": "preprocessed.py"
 		}
 	}
 }
