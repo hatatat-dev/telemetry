@@ -7,6 +7,7 @@ import shlex
 import subprocess
 import hashlib
 import stat
+from typing import Set
 
 parser = argparse.ArgumentParser(
     description="Preprocess Python program by replacing `from <module> import *` statements "
@@ -44,6 +45,11 @@ parser.add_argument(
 )
 parser.add_argument("--no-read-only", dest="read_only", action="store_false")
 parser.add_argument(
+    "--external",
+    default="vex",
+    help="comma-separated list of external modules to keep imported as-is",
+)
+parser.add_argument(
     "--vexcom",
     type=Path,
     default="~/.vscode/extensions/vexrobotics.vexcode-0.5.0/resources/tools/vexcom/osx/vexcom",
@@ -59,28 +65,38 @@ parser.add_argument(
 parser.add_argument("program", type=Path)
 
 
-def load_file(path: Path) -> str:
+def load_file(path: Path, external_modules: Set[str]) -> str:
     """Load a Python file, inlining content for `from <module> import *` statements"""
 
-    with open(path) as file:
-        return (
-            f'# begin "{path}"\n\n'
-            + re.sub(
-                r"^[ \t]*from[ \t]+(\w+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
-                lambda m: (
-                    (
-                        f"# begin inline `{m[0]}`\n\n"
-                        + load_file(path.parent / f"{m[1]}.py")
-                        + f"\n# end inline `{m[0]}`"
-                    )
-                    if (path.parent / f"{m[1]}.py").exists()
-                    else m[0]
-                ),
-                file.read(),
-                flags=re.MULTILINE,
+    imported_modules = set()
+
+    def inner(path: Path) -> str:
+        if path in imported_modules:
+            return "# already imported\n"
+
+        with open(path) as file:
+            imported_modules.add(path)
+
+            return (
+                f'# begin "{path}"\n\n'
+                + re.sub(
+                    r"^[ \t]*from[ \t]+(\w+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
+                    lambda m: (
+                        (
+                            f"# begin inline `{m[0]}`\n\n"
+                            + inner(path.parent / f"{m[1]}.py")
+                            + f"\n# end inline `{m[0]}`"
+                        )
+                        if m[1] not in external_modules
+                        else m[0]
+                    ),
+                    file.read(),
+                    flags=re.MULTILINE,
+                )
+                + f'\n# end "{path}"\n'
             )
-            + f'\n# end "{path}"\n'
-        )
+
+    return inner(path)
 
 
 # To avoid overwriting accidental edits to preprocessed file, a signature line is added at the top
@@ -150,7 +166,7 @@ if not args.overwrite and args.preprocessed.exists():
             )
 
 # Load program, inlining `from <module> import *` statements
-content = load_file(args.program)
+content = load_file(args.program, set(filter(None, args.external.split(","))))
 
 if args.sign:
     # Add signature line at the top

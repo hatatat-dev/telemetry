@@ -1,4 +1,4 @@
-from telemetry import *
+from tele import *
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)
