@@ -50,12 +50,14 @@ def append_csv_arg(buffer: bytearray, arg):
         buffer.append(48)
         return
 
-    if isinstance(arg, int):
-        buffer.extend(str(arg).encode())
+    if isinstance(arg, bool):
+        # bool is a subtype of int https://peps.python.org/pep-0285/
+        # so check for it before checking for actual int
+        buffer.append(49 if arg else 48)
         return
 
-    if isinstance(arg, bool):
-        buffer.append(49 if arg else 48)
+    if isinstance(arg, int):
+        buffer.extend(str(arg).encode())
         return
 
     if isinstance(arg, float):
