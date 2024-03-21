@@ -5,7 +5,6 @@ from vex import *
 from record import *
 
 
-# State of a controller
 ControllerState = namedtuple(
     "ControllerState",
     [
@@ -27,6 +26,7 @@ ControllerState = namedtuple(
         "buttonY",
     ],
 )
+"""State of a controller"""
 
 
 def get_controller_state_no_record(controller: Controller) -> ControllerState:
@@ -51,7 +51,6 @@ def get_controller_state_no_record(controller: Controller) -> ControllerState:
     )
 
 
-# State of an inertial sensor
 InertialState = namedtuple(
     "InertialState",
     [
@@ -72,6 +71,7 @@ InertialState = namedtuple(
         "turn_type",
     ],
 )
+"""State of an inertial sensor"""
 
 
 def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
@@ -95,7 +95,6 @@ def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
     )
 
 
-# State of a motor
 MotorState = namedtuple(
     "MotorState",
     [
@@ -116,6 +115,7 @@ MotorState = namedtuple(
         "command",
     ],
 )
+"""State of a motor"""
 
 
 def get_motor_state_no_record(motor: Motor) -> MotorState:

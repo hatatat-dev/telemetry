@@ -1,14 +1,22 @@
+#!/usr/bin/env python3
+
 from tele import *
+from brain import *
+from sdcard import *
+
+filename = "records.csv"
+
+open_record_file(filename)
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)
 motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 
 
-brain.screen.print("clear", records_filename)
+brain.screen.print("clear", filename)
 brain.screen.next_row()
 
-brain.sdcard.savefile(records_filename, bytearray())
+brain.sdcard.savefile(filename, bytearray())
 
 controller.buttonA.pressed(print, ("buttonA", "pressed"))
 controller.buttonA.released(print, ("buttonA", "released"))
@@ -40,9 +48,11 @@ for step in range(2):
     get_inertial_state(inertial, "test")
     get_motor_state(motor_a, "test")
     motor_a.spin(DirectionType.FORWARD if step % 2 == 0 else DirectionType.REVERSE)
-    sleep(1000, MSEC)
+    sleep(1000)
 
 motor_a.stop()
 
 brain.screen.print("done")
 brain.screen.next_row()
+
+close_record_file()

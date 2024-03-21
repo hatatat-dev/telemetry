@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import argparse
 import re
@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--preprocessed",
     type=Path,
-    default="preprocessed.py",
+    default="vex/preprocessed.py",
     help="name of the preprocessed file",
 )
 parser.add_argument(
@@ -44,6 +44,13 @@ parser.add_argument(
     help="after writing, make preprocessed file read-only",
 )
 parser.add_argument("--no-read-only", dest="read_only", action="store_false")
+parser.add_argument(
+    "--executable",
+    action="store_true",
+    default=True,
+    help="after writing, make preprocessed file executable",
+)
+parser.add_argument("--no-executable", dest="executable", action="store_false")
 parser.add_argument(
     "--external",
     default="vex,cte",
@@ -101,7 +108,7 @@ def load_file(path: Path, external_modules: Set[str]) -> str:
 
 # To avoid overwriting accidental edits to preprocessed file, a signature line is added at the top
 # with a hexadecimal hash of the remaining content
-SIGNATURE_PREFIX = "# signature "
+SIGNATURE_PREFIX = "#!/usr/bin/env python3\n# signature "
 SIGNATURE_SUFFIX = "\n\n"
 SIGNATURE_LEN = 64
 
@@ -183,6 +190,10 @@ with open(args.preprocessed, "w") as file:
 if args.read_only:
     # Remove write permissions to the file
     args.preprocessed.chmod(args.preprocessed.stat().st_mode & ~stat.S_IWUSR)
+
+if args.executable:
+    # Add executable permissions to the file
+    args.preprocessed.chmod(args.preprocessed.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
 if args.write:

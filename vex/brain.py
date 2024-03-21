@@ -1,9 +1,13 @@
+import sys
 from vex import *
+from mock_timer import *
 
-# Brain should be defined by default
 brain = Brain()
+"""Global brain instance"""
 
+if sys.implementation.name == "cpython":
+    # Override brain properties
+    setattr(brain, "timer", mock_timer)
 
-def get_timestamp() -> int:
-    """Get current timestamp for a telemetry record"""
-    return brain.timer.time()
+# User timer from the global brain instance"
+set_timer(brain.timer)

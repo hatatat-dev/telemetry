@@ -1,6 +1,7 @@
 import sys
 import os
 
+# Import everything from cte.py stub
 with open(
     os.path.expanduser(
         "~/Library/Application Support/Code/User/globalStorage/"

@@ -1,11 +1,29 @@
-from brain import *
+import io
+
 from record import *
+from mock_timer import *
 
-# List of telemetry records in this run
 records = []
+"""(Partial) list of telemetry records in this run"""
 
-# Name of the file for saving telemetry records in CSV (comma-separated values) format
-records_filename = "/records.csv"
+record_file_writer = None
+"""Writer to the records file"""
+
+
+def open_record_file(filename: str):
+    """Open telemetry records file for writing"""
+    global record_file_writer
+    if record_file_writer:
+        record_file_writer.close()
+    record_file_writer = open(filename, "wb")
+
+
+def close_record_file():
+    """Close telemetry records file"""
+    global record_file_writer
+    if record_file_writer:
+        record_file_writer.close()
+        record_file_writer = None
 
 
 def save_record(record: Record) -> None:
@@ -14,17 +32,11 @@ def save_record(record: Record) -> None:
     # Append record to the list of records
     records.append(record)
 
-    # Append record to the file as a line in CSV format
-    brain.sdcard.appendfile(
-        records_filename,
-        bytearray(
-            ",".join(map(str, record.header))
-            + ","
-            + ",".join(map(format_csv_arg, record.args))
-            + "\n",
-            "utf-8",
-        ),
-    )
+    if record_file_writer:
+        # Append record to the file as a line in CSV format
+        buffer = bytearray()
+        append_record(buffer, record)
+        record_file_writer.write(buffer)
 
 
 def save_method_call(
