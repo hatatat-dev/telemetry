@@ -1,5 +1,7 @@
 from record import *
+from state import *
 from sdcard import *
+
 
 def get_controller_state(controller: Controller, tag: str) -> ControllerState:
     """Get controller state and save the telemetry record for that"""

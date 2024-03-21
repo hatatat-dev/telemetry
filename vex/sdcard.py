@@ -1,5 +1,4 @@
 from brain import *
-
 from record import *
 
 # List of telemetry records in this run
@@ -61,4 +60,3 @@ def callback_with_record(
     else:
         # Some value returned from the callback, save telemetry record
         save_method_call(timestamp, obj, method, tag, result)
-

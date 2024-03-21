@@ -46,7 +46,7 @@ parser.add_argument(
 parser.add_argument("--no-read-only", dest="read_only", action="store_false")
 parser.add_argument(
     "--external",
-    default="vex",
+    default="vex,cte",
     help="comma-separated list of external modules to keep imported as-is",
 )
 parser.add_argument(
