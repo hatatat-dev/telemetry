@@ -2,11 +2,11 @@
 
 from tele import *
 from brain import *
-from sdcard import *
+from log import *
 
 filename = "records.csv"
 
-open_record_file(filename)
+open_log(filename)
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)
@@ -55,4 +55,4 @@ motor_a.stop()
 brain.screen.print("done")
 brain.screen.next_row()
 
-close_record_file()
+close_log()

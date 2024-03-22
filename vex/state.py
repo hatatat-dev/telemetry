@@ -4,6 +4,23 @@ from vex import *
 
 from record import *
 
+AXIS_TYPES = (AxisType.XAXIS, AxisType.YAXIS, AxisType.ZAXIS)
+"""AxisType enum objects, indexed by their values"""
+
+
+ORIENTATION_TYPES = (OrientationType.ROLL, OrientationType.PITCH, OrientationType.YAW)
+"""OrientationType enum objects, indexed by their values"""
+
+TURN_TYPES = (TurnType.LEFT, TurnType.RIGHT, TurnType.UNDEFINED)
+"""TurnType enum objects, indexed by their values"""
+
+DIRECTION_TYPES = (
+    DirectionType.FORWARD,
+    DirectionType.REVERSE,
+    DirectionType.UNDEFINED,
+)
+"""DirectionType enum objects, indexed by their values"""
+
 
 ControllerState = namedtuple(
     "ControllerState",
@@ -27,6 +44,28 @@ ControllerState = namedtuple(
     ],
 )
 """State of a controller"""
+
+
+def controller_state_from_args(args) -> ControllerState:
+    """Get controller state from a tuple of float args"""
+    return ControllerState(
+        int(args[0]),
+        int(args[1]),
+        int(args[2]),
+        int(args[3]),
+        bool(args[4]),
+        bool(args[5]),
+        bool(args[6]),
+        bool(args[7]),
+        bool(args[8]),
+        bool(args[9]),
+        bool(args[10]),
+        bool(args[11]),
+        bool(args[12]),
+        bool(args[13]),
+        bool(args[14]),
+        bool(args[15]),
+    )
 
 
 def get_controller_state_no_record(controller: Controller) -> ControllerState:
@@ -74,6 +113,27 @@ InertialState = namedtuple(
 """State of an inertial sensor"""
 
 
+def inertial_state_from_args(args) -> InertialState:
+    """Get inertial state from a tuple of float args"""
+    return InertialState(
+        bool(args[0]),
+        int(args[1]),
+        args[2],
+        args[3],
+        bool(args[4]),
+        AXIS_TYPES[int(args[5])],
+        AXIS_TYPES[int(args[6])],
+        AXIS_TYPES[int(args[7])],
+        ORIENTATION_TYPES[int(args[6])],
+        ORIENTATION_TYPES[int(args[7])],
+        ORIENTATION_TYPES[int(args[8])],
+        ORIENTATION_TYPES[int(args[9])],
+        ORIENTATION_TYPES[int(args[10])],
+        ORIENTATION_TYPES[int(args[11])],
+        TURN_TYPES[int(args[12])],
+    )
+
+
 def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
     """Get state of a inertial without writing a telemetry record"""
     return InertialState(
@@ -116,6 +176,27 @@ MotorState = namedtuple(
     ],
 )
 """State of a motor"""
+
+
+def motor_state_from_args(args) -> MotorState:
+    """Get motor state from a tuple of float args"""
+    return MotorState(
+        bool(args[0]),
+        int(args[1]),
+        args[2],
+        bool(args[3]),
+        bool(args[4]),
+        bool(args[5]),
+        DIRECTION_TYPES[int(args[6])],
+        args[7],
+        args[6],
+        args[7],
+        args[8],
+        args[9],
+        args[10],
+        args[11],
+        args[12],
+    )
 
 
 def get_motor_state_no_record(motor: Motor) -> MotorState:

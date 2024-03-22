@@ -17,8 +17,57 @@ def append_record_header(buffer: bytearray, header: RecordHeader):
     buffer.extend(header.tag.encode())
 
 
-Record = namedtuple("Record", ["header", "args"])
-"""Tuple with telemetry record"""
+def parse_record_header(line: str, line_number: int):
+    """Parse the line into a record header and the rest of the line"""
+
+    if not line.endswith("\n"):
+        raise Exception("no newline on line " + str(line_number))
+
+    offset = 0
+
+    index = line.find(",", offset)
+    if index < 0:
+        raise Exception("no record timestamp on line " + str(line_number))
+
+    try:
+        timestamp = line[offset:index]
+    except ValueError:
+        raise Exception("invalid timestamp on line " + str(line_number))
+
+    offset = index + 1
+
+    index = line.find(",", offset)
+    if index < 0:
+        raise Exception("no record cls on line " + str(line_number))
+
+    cls = line[offset:index]
+
+    offset = index + 1
+
+    index = line.find(",", offset)
+    if index < 0:
+        raise Exception("no record name on line " + str(line_number))
+
+    name = line[offset:index]
+
+    offset = index + 1
+
+    index = line.find(",", offset)
+    if index < 0:
+        raise Exception("no record method on line " + str(line_number))
+
+    method = line[offset:index]
+
+    offset = index + 1
+
+    index = line.find(",", offset)
+    if index < 0:
+        return RecordHeader(timestamp, cls, name, method, line[offset:-1]), None
+
+    return (
+        RecordHeader(timestamp, cls, name, method, line[offset:index]),
+        line[index + 1 : -1],
+    )
 
 
 def create_record_header(
@@ -32,6 +81,10 @@ def create_record_header(
     name = getattr(obj, "name", "") or ("id_" + str(id(obj)))
 
     return RecordHeader(timestamp, cls, name, method, tag)
+
+
+Record = namedtuple("Record", ["header", "args"])
+"""Tuple with telemetry record"""
 
 
 def create_method_call_record(
@@ -61,14 +114,14 @@ def append_csv_arg(buffer: bytearray, arg):
         return
 
     if isinstance(arg, float):
-        s = str(float(arg))
+        s = str(float(arg)).encode()
 
         if len(s) > 2 and s[-2] == 46 and s[-1] == 48:
             # Remove trailing .0 for the integers
-            buffer.extend(s[:-2].encode())
+            buffer.extend(s[:-2])
             return
 
-        buffer.extend(s.encode())
+        buffer.extend(s)
         return
 
     cls = arg.__class__.__name__
@@ -90,3 +143,31 @@ def append_record(buffer: bytearray, record: Record):
         buffer.append(44)
         append_csv_arg(buffer, arg)
     buffer.append(10)
+
+
+def parse_record_args(rest, line_number: int):
+    """Parse rest of the line after record header into tuple of float args"""
+    if rest is None:
+        return ()
+
+    args = []
+
+    offset = 0
+
+    while True:
+        index = rest.find(",", offset + 1)
+        if index < 0:
+            try:
+                arg = float(rest[offset:])
+            except ValueError:
+                raise Exception("expected number arg on line " + str(line_number))
+            args.append(arg)
+            return tuple(args)
+
+        try:
+            arg = float(rest[offset:index])
+        except ValueError:
+            raise Exception("expected number arg on line " + str(line_number))
+
+        args.append(arg)
+        offset = index + 1

@@ -1,6 +1,6 @@
 from record import *
 from state import *
-from sdcard import *
+from log import *
 
 
 def get_controller_state(controller: Controller, tag: str) -> ControllerState:
@@ -9,7 +9,7 @@ def get_controller_state(controller: Controller, tag: str) -> ControllerState:
     timestamp = get_timestamp()
     state = get_controller_state_no_record(controller)
 
-    save_record(
+    log_record(
         Record(
             create_record_header(timestamp, controller, "state", tag),
             state,
@@ -25,7 +25,7 @@ def get_inertial_state(inertial: Inertial, tag: str) -> InertialState:
     timestamp = get_timestamp()
     state = get_inertial_state_no_record(inertial)
 
-    save_record(
+    log_record(
         Record(
             create_record_header(timestamp, inertial, "state", tag),
             state,
@@ -41,7 +41,7 @@ def get_motor_state(motor: Motor, tag: str) -> MotorState:
     timestamp = get_timestamp()
     state = get_motor_state_no_record(motor)
 
-    save_record(
+    log_record(
         Record(
             create_record_header(timestamp, motor, "state", tag),
             state,
@@ -75,7 +75,7 @@ class TeleMotor(Motor):
             setattr(
                 self,
                 method,
-                decorate_method_call(self, method, tag, getattr(self, method)),
+                wrap_method_with_log(self, method, tag, getattr(self, method)),
             )
 
 
@@ -98,18 +98,18 @@ class TeleInertial(Inertial):
             setattr(
                 self,
                 method,
-                decorate_method_call(self, method, tag, getattr(self, method)),
+                wrap_method_with_log(self, method, tag, getattr(self, method)),
             )
 
     def changed(self, callback: Callable[..., None], arg: tuple = ()):
         return super().changed(
-            callback_with_record,
+            wrap_callback_with_log,
             (self, "changed", self.tag, callback, False) + arg,
         )
 
     def collision(self, callback: Callable[..., None], arg: tuple = ()):
         return super().collision(
-            callback_with_record,
+            wrap_callback_with_log,
             (self, "collision", self.tag, callback, False) + arg,
         )
 
@@ -135,7 +135,7 @@ class TeleController(Controller):
 
         def changed(self, callback: Callable[..., None], arg: tuple = ()):
             return self.original.changed(
-                callback_with_record,
+                wrap_callback_with_log,
                 (
                     self.controller,
                     self.name + "_changed",
@@ -161,7 +161,7 @@ class TeleController(Controller):
 
         def pressed(self, callback: Callable[..., None], arg: tuple = ()):
             return self.original.pressed(
-                callback_with_record,
+                wrap_callback_with_log,
                 (
                     self.controller,
                     self.name + "_pressed",
@@ -174,7 +174,7 @@ class TeleController(Controller):
 
         def released(self, callback: Callable[..., None], arg: tuple = ()):
             return self.original.released(
-                callback_with_record,
+                wrap_callback_with_log,
                 (
                     self.controller,
                     self.name + "_released",
