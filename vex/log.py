@@ -2,6 +2,7 @@ import io
 
 from record import *
 from mock_timer import *
+from device import *
 
 records = []
 """(Partial) list of telemetry records in this run"""
@@ -13,16 +14,19 @@ log_writer = None
 def open_log(filename: str):
     """Open log file for writing"""
     global log_writer
-    if log_writer:
-        log_writer.close()
-        log_writer = None
+    close_log()
     log_writer = open(filename, "wb")
 
+def flush_log():
+    """Flush content written to log file"""
+    if log_writer:
+        log_writer.flush()
 
 def close_log():
     """Close log file"""
     global log_writer
     if log_writer:
+        log_writer.flush()
         log_writer.close()
         log_writer = None
 
@@ -32,6 +36,9 @@ def log_record(record: Record) -> None:
 
     # Append record to the list of records
     records.append(record)
+
+    if not is_running_on_device:
+        print(record)
 
     if log_writer:
         # Append record to the file as a line in CSV format
@@ -59,7 +66,9 @@ def wrap_method_with_log(obj, method: str, tag: str, original):
     return wrapped
 
 
-def wrap_callback_with_log(obj, method: str, tag: str, callback, unconditional: bool, *args):
+def wrap_callback_with_log(
+    obj, method: str, tag: str, callback, unconditional: bool, *args
+):
     """Wrap given callback to log a telemetry record"""
 
     timestamp = get_timestamp()

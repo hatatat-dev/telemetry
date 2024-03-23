@@ -2,5 +2,4 @@
 .DS_Store
 /.vscode/settings.json
 vex/preprocessed.py
-records.csv
-copy.csv
+*.csv

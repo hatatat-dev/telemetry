@@ -19,7 +19,7 @@ class LogReader:
             index = self.buffer.find("\n", self.offset)
 
             if index >= 0:
-                line = self.buffer[self.offset : index+ 1]
+                line = self.buffer[self.offset : index + 1]
                 self.offset = index + 1
                 return line
 

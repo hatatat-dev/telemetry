@@ -3,7 +3,7 @@ from state import *
 from log import *
 
 
-def get_controller_state(controller: Controller, tag: str) -> ControllerState:
+def get_controller_state(controller: Controller, tag: str = "") -> ControllerState:
     """Get controller state and save the telemetry record for that"""
 
     timestamp = get_timestamp()
@@ -19,7 +19,7 @@ def get_controller_state(controller: Controller, tag: str) -> ControllerState:
     return state
 
 
-def get_inertial_state(inertial: Inertial, tag: str) -> InertialState:
+def get_inertial_state(inertial: Inertial, tag: str = "") -> InertialState:
     """Get inertial sensor state and save the telemetry record for that"""
 
     timestamp = get_timestamp()
@@ -35,7 +35,7 @@ def get_inertial_state(inertial: Inertial, tag: str) -> InertialState:
     return state
 
 
-def get_motor_state(motor: Motor, tag: str) -> MotorState:
+def get_motor_state(motor: Motor, tag: str = "") -> MotorState:
     """Get motor sensor state and save the telemetry record for that"""
 
     timestamp = get_timestamp()

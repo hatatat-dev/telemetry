@@ -30,7 +30,7 @@ def parse_record_header(line: str, line_number: int):
         raise Exception("no record timestamp on line " + str(line_number))
 
     try:
-        timestamp = line[offset:index]
+        timestamp = int(line[offset:index])
     except ValueError:
         raise Exception("invalid timestamp on line " + str(line_number))
 
@@ -178,10 +178,8 @@ def map_arg(mapping, arg: float):
     if mapping is None:
         return arg
 
-    t = type(mapping)
-
-    if t == tuple:
-        return t[int(t)]
+    if isinstance(mapping, (list, tuple, dict)):
+        return mapping[int(arg)]
 
     return mapping(arg)
 
@@ -189,6 +187,6 @@ def map_arg(mapping, arg: float):
 def map_args(mappings, args):
     """Map args value according to their mappings"""
     return tuple(
-        map_arg(mappings[index], arg) if index < len(mappings) else arg
-        for index, arg in enumerate(args)
+        map_arg(mappings[index], args[index]) if index < len(mappings) else args[index]
+        for index in range(len(args))
     )

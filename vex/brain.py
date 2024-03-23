@@ -1,11 +1,12 @@
 import sys
 from vex import *
 from mock_timer import *
+from device import *
 
 brain = Brain()
 """Global brain instance"""
 
-if sys.implementation.name == "cpython":
+if not is_running_on_device:
     # Override brain properties
     setattr(brain, "timer", mock_timer)
 
