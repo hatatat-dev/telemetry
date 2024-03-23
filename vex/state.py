@@ -3,16 +3,7 @@ from collections import namedtuple
 from vex import *
 
 from record import *
-
-AXIS_TYPES = (AxisType.XAXIS, AxisType.YAXIS, AxisType.ZAXIS)
-"""AxisType enum objects, indexed by their values"""
-
-
-ORIENTATION_TYPES = (OrientationType.ROLL, OrientationType.PITCH, OrientationType.YAW)
-"""OrientationType enum objects, indexed by their values"""
-
-TURN_TYPES = (TurnType.LEFT, TurnType.RIGHT, TurnType.UNDEFINED)
-"""TurnType enum objects, indexed by their values"""
+from enums import *
 
 DIRECTION_TYPES = (
     DirectionType.FORWARD,
@@ -46,25 +37,30 @@ ControllerState = namedtuple(
 """State of a controller"""
 
 
-def controller_state_from_args(args) -> ControllerState:
-    """Get controller state from a tuple of float args"""
+def ControllerState_from_args(args):
+    """Create ControllerState from float args"""
     return ControllerState(
-        int(args[0]),
-        int(args[1]),
-        int(args[2]),
-        int(args[3]),
-        bool(args[4]),
-        bool(args[5]),
-        bool(args[6]),
-        bool(args[7]),
-        bool(args[8]),
-        bool(args[9]),
-        bool(args[10]),
-        bool(args[11]),
-        bool(args[12]),
-        bool(args[13]),
-        bool(args[14]),
-        bool(args[15]),
+        *map_args(
+            (
+                int,
+                int,
+                int,
+                int,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+                bool,
+            ),
+            args,
+        )
     )
 
 
@@ -113,24 +109,29 @@ InertialState = namedtuple(
 """State of an inertial sensor"""
 
 
-def inertial_state_from_args(args) -> InertialState:
-    """Get inertial state from a tuple of float args"""
+def InertialState_from_args(args):
+    """Create InertialState from float args"""
     return InertialState(
-        bool(args[0]),
-        int(args[1]),
-        args[2],
-        args[3],
-        bool(args[4]),
-        AXIS_TYPES[int(args[5])],
-        AXIS_TYPES[int(args[6])],
-        AXIS_TYPES[int(args[7])],
-        ORIENTATION_TYPES[int(args[6])],
-        ORIENTATION_TYPES[int(args[7])],
-        ORIENTATION_TYPES[int(args[8])],
-        ORIENTATION_TYPES[int(args[9])],
-        ORIENTATION_TYPES[int(args[10])],
-        ORIENTATION_TYPES[int(args[11])],
-        TURN_TYPES[int(args[12])],
+        *map_args(
+            (
+                bool,
+                int,
+                None,
+                None,
+                bool,
+                AxisType_values,
+                AxisType_values,
+                AxisType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                TurnType_values,
+            ),
+            args,
+        )
     )
 
 
@@ -178,27 +179,6 @@ MotorState = namedtuple(
 """State of a motor"""
 
 
-def motor_state_from_args(args) -> MotorState:
-    """Get motor state from a tuple of float args"""
-    return MotorState(
-        bool(args[0]),
-        int(args[1]),
-        args[2],
-        bool(args[3]),
-        bool(args[4]),
-        bool(args[5]),
-        DIRECTION_TYPES[int(args[6])],
-        args[7],
-        args[6],
-        args[7],
-        args[8],
-        args[9],
-        args[10],
-        args[11],
-        args[12],
-    )
-
-
 def get_motor_state_no_record(motor: Motor) -> MotorState:
     """Get state of a motor without writing a telemetry record"""
     return MotorState(
@@ -217,4 +197,31 @@ def get_motor_state_no_record(motor: Motor) -> MotorState:
         motor.efficiency(),
         motor.temperature(),
         motor.command(),
+    )
+
+
+# Implement from_args method for MotorState
+def MotorState_from_args(args):
+    """Create MotorState from float args"""
+    return MotorState(
+        *map_args(
+            (
+                bool,
+                int,
+                None,
+                bool,
+                bool,
+                bool,
+                DirectionType_values,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            args,
+        )
     )

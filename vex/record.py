@@ -171,3 +171,24 @@ def parse_record_args(rest, line_number: int):
 
         args.append(arg)
         offset = index + 1
+
+
+def map_arg(mapping, arg: float):
+    """Map arg value according to the mapping"""
+    if mapping is None:
+        return arg
+
+    t = type(mapping)
+
+    if t == tuple:
+        return t[int(t)]
+
+    return mapping(arg)
+
+
+def map_args(mappings, args):
+    """Map args value according to their mappings"""
+    return tuple(
+        map_arg(mappings[index], arg) if index < len(mappings) else arg
+        for index, arg in enumerate(args)
+    )

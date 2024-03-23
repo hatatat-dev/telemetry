@@ -53,7 +53,7 @@ parser.add_argument(
 parser.add_argument("--no-executable", dest="executable", action="store_false")
 parser.add_argument(
     "--external",
-    default="vex,cte",
+    default="vex,cte,typing",
     help="comma-separated list of external modules to keep imported as-is",
 )
 parser.add_argument(
