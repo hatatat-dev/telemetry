@@ -46,10 +46,10 @@ for cls in dir(vex):
         print(f"no values for {cls}", file=sys.stderr)
     else:
         print()
-        print(f"# enum values for {cls}")
         print(
             f'{cls}_values = ('
             + ", ".join(f"{cls}.{name}" if name else "None" for name in names)
             + ("," if len(names) == 1 else "")
             + ")"
         )
+        print(f'"""enum values for {cls}"""')

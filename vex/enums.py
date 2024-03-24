@@ -1,31 +1,36 @@
 from vex import *
 
-# enum values for AnalogUnits
-AnalogUnits_values = (AnalogUnits.EIGHTBIT,)
+AnalogUnits_values = (
+    AnalogUnits.PCT,
+    AnalogUnits.EIGHTBIT,
+    AnalogUnits.TENBIT,
+    AnalogUnits.TWELVEBIT,
+    AnalogUnits.MV,
+)
+"""enum values for AnalogUnits"""
 
-# enum values for AxisType
 AxisType_values = (AxisType.XAXIS, AxisType.YAXIS, AxisType.ZAXIS)
+"""enum values for AxisType"""
 
-# enum values for BrakeType
 BrakeType_values = (BrakeType.COAST, BrakeType.BRAKE, BrakeType.HOLD)
+"""enum values for BrakeType"""
 
-# enum values for ControllerType
 ControllerType_values = (ControllerType.PRIMARY, ControllerType.PARTNER)
+"""enum values for ControllerType"""
 
-# enum values for CurrentUnits
 CurrentUnits_values = (CurrentUnits.AMP,)
+"""enum values for CurrentUnits"""
 
-# enum values for DirectionType
 DirectionType_values = (
     DirectionType.FORWARD,
     DirectionType.REVERSE,
     DirectionType.UNDEFINED,
 )
+"""enum values for DirectionType"""
 
-# enum values for DistanceUnits
 DistanceUnits_values = (DistanceUnits.MM, DistanceUnits.IN, DistanceUnits.CM)
+"""enum values for DistanceUnits"""
 
-# enum values for FontType
 FontType_values = (
     FontType.MONO20,
     FontType.MONO30,
@@ -39,15 +44,15 @@ FontType_values = (
     FontType.MONO12,
     FontType.CJK16,
 )
+"""enum values for FontType"""
 
-# enum values for GearSetting
 GearSetting_values = (
     GearSetting.RATIO_36_1,
     GearSetting.RATIO_18_1,
     GearSetting.RATIO_6_1,
 )
+"""enum values for GearSetting"""
 
-# enum values for GestureType
 GestureType_values = (
     GestureType.NONE,
     GestureType.UP,
@@ -55,32 +60,32 @@ GestureType_values = (
     GestureType.LEFT,
     GestureType.RIGHT,
 )
+"""enum values for GestureType"""
 
-# enum values for LedStateType
 LedStateType_values = (LedStateType.OFF, LedStateType.ON, LedStateType.BLINK)
+"""enum values for LedStateType"""
 
-# enum values for ObjectSizeType
 ObjectSizeType_values = (
     ObjectSizeType.NONE,
     ObjectSizeType.SMALL,
     ObjectSizeType.MEDIUM,
     ObjectSizeType.LARGE,
 )
+"""enum values for ObjectSizeType"""
 
-# enum values for OrientationType
 OrientationType_values = (
     OrientationType.ROLL,
     OrientationType.PITCH,
     OrientationType.YAW,
 )
+"""enum values for OrientationType"""
 
-# enum values for PercentUnits
 PercentUnits_values = (PercentUnits.PERCENT,)
+"""enum values for PercentUnits"""
 
-# enum values for PowerUnits
 PowerUnits_values = (PowerUnits.WATT,)
+"""enum values for PowerUnits"""
 
-# enum values for RotationUnits
 RotationUnits_values = (
     RotationUnits.DEG,
     RotationUnits.REV,
@@ -183,11 +188,11 @@ RotationUnits_values = (
     None,
     RotationUnits.RAW,
 )
+"""enum values for RotationUnits"""
 
-# enum values for TemperatureUnits
-TemperatureUnits_values = (TemperatureUnits.CELSIUS,)
+TemperatureUnits_values = (TemperatureUnits.CELSIUS, TemperatureUnits.FAHRENHEIT)
+"""enum values for TemperatureUnits"""
 
-# enum values for ThreeWireType
 ThreeWireType_values = (
     ThreeWireType.ANALOG_IN,
     ThreeWireType.ANALOG_OUT,
@@ -205,26 +210,27 @@ ThreeWireType_values = (
     ThreeWireType.SONAR,
     ThreeWireType.SLEW_MOTOR,
 )
+"""enum values for ThreeWireType"""
 
-# enum values for TimeUnits
 TimeUnits_values = (TimeUnits.SECONDS, TimeUnits.MSEC)
+"""enum values for TimeUnits"""
 
-# enum values for TorqueUnits
 TorqueUnits_values = (TorqueUnits.NM, TorqueUnits.INLB)
+"""enum values for TorqueUnits"""
 
-# enum values for TurnType
 TurnType_values = (TurnType.LEFT, TurnType.RIGHT, TurnType.UNDEFINED)
+"""enum values for TurnType"""
 
-# enum values for VelocityUnits
 VelocityUnits_values = (VelocityUnits.PERCENT, VelocityUnits.RPM, VelocityUnits.DPS)
+"""enum values for VelocityUnits"""
 
-# enum values for VexlinkType
 VexlinkType_values = (
     None,
     VexlinkType.MANAGER,
     VexlinkType.WORKER,
     VexlinkType.GENERIC,
 )
+"""enum values for VexlinkType"""
 
-# enum values for VoltageUnits
-VoltageUnits_values = (VoltageUnits.MV,)
+VoltageUnits_values = (VoltageUnits.VOLT, VoltageUnits.MV)
+"""enum values for VoltageUnits"""
