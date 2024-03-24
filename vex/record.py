@@ -18,7 +18,11 @@ def append_record_header(buffer: bytearray, header: RecordHeader):
 
 
 def parse_record_header(line: str, line_number: int):
-    """Parse the line into a record header and the rest of the line"""
+    """Parse the line into a record header and the rest of the line
+
+    Return (RecordHeader, str) when there are args after the header,
+    return (RecordHeader, None) when there are no args after the header.
+    """
 
     if not line.endswith("\n"):
         raise Exception("no newline on line " + str(line_number))
