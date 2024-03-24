@@ -6,10 +6,16 @@ class LogReader:
         """Create a buffered reader for the log in the given file"""
         self.filename = filename
         self.read_size = read_size
+
+        # Buffer that may be partially read, and then - unread
         self.buffer = ""
+
+        # Offset of the unread part of the buffer
         self.offset = 0
 
         self.file = open(filename)
+
+        # Last read line number
         self.line_number = 0
 
     def close(self):
@@ -22,16 +28,22 @@ class LogReader:
             index = self.buffer.find("\n", self.offset)
 
             if index >= 0:
+                # Newline in the buffer, return line up to and including it
                 line = self.buffer[self.offset : index + 1]
                 self.offset = index + 1
                 return line
 
+            # No newline, line continues, read the next chunk
             next = self.file.read(self.read_size)
 
             if not next:
+                # No next chunk, end of file
                 return None
 
+            # Reset buffer to the remainder of current plus next chunk
             self.buffer = self.buffer[self.offset :] + next
+
+            # Reset unread offset to beginning of buffer
             self.offset = 0
 
     def read_record_header(self):
@@ -45,9 +57,17 @@ class LogReader:
             line = self.read_line()
 
             if line is None:
+                # End of file
                 return None, None
 
-            if line:
-                break
+            if not line:
+                # Skip empty lines
+                continue
+
+            if line.startswith(RECORD_HEADER_HEADER):
+                # Skip header line(s)
+                continue
+
+            break
 
         return parse_record_header(line, self.line_number)

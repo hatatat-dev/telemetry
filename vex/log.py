@@ -14,13 +14,24 @@ log_writer = None
 def open_log(filename: str):
     """Open log file for writing"""
     global log_writer
+
+    # Close log file if it's open
     close_log()
+
+    # Open file for binary (byte-based) writing
     log_writer = open(filename, "wb")
+
+    # Write CSV header
+    buffer = bytearray()
+    append_csv_header(buffer)
+    log_writer.write(buffer)
+
 
 def flush_log():
     """Flush content written to log file"""
     if log_writer:
         log_writer.flush()
+
 
 def close_log():
     """Close log file"""

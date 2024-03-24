@@ -17,6 +17,21 @@ def append_record_header(buffer: bytearray, header: RecordHeader):
     buffer.extend(header.tag.encode())
 
 
+RECORD_HEADER_HEADER = ",".join(RecordHeader._fields)
+"""CSV header with just the RecordHeader fields without args"""
+
+
+def append_csv_header(buffer: bytearray, args_len: int = 20):
+    """Append CSV header with both RecordHeader and arg_* fields"""
+    buffer.extend(RECORD_HEADER_HEADER.encode())
+
+    for index in range(args_len):
+        buffer.extend(b",arg_")
+        buffer.extend(str(index).encode())
+
+    buffer.append(10)
+
+
 def parse_record_header(line: str, line_number: int):
     """Parse the line into a record header and the rest of the line
 
