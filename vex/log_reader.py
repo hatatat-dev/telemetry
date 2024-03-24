@@ -29,6 +29,7 @@ class LogReader:
                 return None
 
             self.buffer = self.buffer[self.offset :] + next
+            self.offset = 0
 
     def read_record_header(self):
         while True:
