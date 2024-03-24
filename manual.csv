@@ -1,0 +1,12 @@
+8,Controller,controller,state,,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+8,Inertial,inertial,state,,1,462,0,0,1,0,0,0,0.3357036,0.5493331,0.122074,-0.1883545,0.953125,0.4144287,1
+9,Motor,motor_a,state,,1,465,1073741823,0,1,0,2,0,0,0,0,0,0,30,0
+10,Motor,motor_a,state,,1,475,1073741823,0,1,0,2,0,0,0,0,0,0,30,0
+2782,Motor,motor_a,spin,,0
+2782,Controller,controller,buttonA_pressed,
+5002,Motor,motor_b,spin,,0
+5002,Controller,controller,buttonB_pressed,
+5022,Motor,motor_a,stop,
+5022,Controller,controller,buttonA_released,
+7672,Motor,motor_b,stop,
+7672,Controller,controller,buttonB_released,

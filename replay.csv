@@ -1,0 +1,4 @@
+2782,Motor,motor_a,spin,,0
+5002,Motor,motor_b,spin,,0
+5022,Motor,motor_a,stop,
+7672,Motor,motor_b,stop,

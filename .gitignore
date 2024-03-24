@@ -2,4 +2,4 @@
 .DS_Store
 /.vscode/settings.json
 vex/preprocessed.py
-*.csv
+vex/__pycache__

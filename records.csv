@@ -1,0 +1,9 @@
+1,Controller,controller,state,test,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2,Inertial,inertial,state,test,1,0,20,20,0,0,0,0,0,0,0,0,0,0,0
+3,Motor,motor_a,state,test,1,0,10000,1,1,0,0,20,2,1,1,1,1,1,50
+4,Motor,motor_a,spin,,0
+5,Controller,controller,state,test,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+6,Inertial,inertial,state,test,1,0,20,20,0,0,0,0,0,0,0,0,0,0,0
+7,Motor,motor_a,state,test,1,0,10000,1,1,0,0,20,2,1,1,1,1,1,50
+8,Motor,motor_a,spin,,0
+9,Motor,motor_a,stop,
