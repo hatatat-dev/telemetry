@@ -4,7 +4,7 @@ from tele import *
 from brain import *
 from log import *
 
-filename = "divetrain.csv"
+filename = "drivetrain.csv"
 
 open_log(filename)
 

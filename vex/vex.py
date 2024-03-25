@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import threading
 from typing import Callable
 
 # Import everything from vex.py stub
@@ -52,3 +53,14 @@ class Timer:
     def event(self, callback: Callable[..., None], delay: int, arg: tuple = ()):
         # TODO: implement
         raise NotImplemented()
+
+class Thread(threading.Thread):
+    """Replace stub Timer with this one that uses time.time()"""
+    def __init__(self, callback: Callable[...,None], arg: tuple=()):
+        super().__init__(target=callback, args=arg)
+        self.run()
+
+
+    @staticmethod
+    def sleep_for(duration, units=TimeUnits.MSEC): # type: ignore
+        sleep(duration, units)
