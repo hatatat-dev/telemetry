@@ -10,19 +10,16 @@ class MockTimer:
         return self.latest_time
 
 
-mock_timer = MockTimer()
-"""Global mock timer instance"""
-
-timer = MockTimer()
+_timer = MockTimer()
 """Global timer"""
 
 
 def get_timestamp():
     """Get current timestamp from the global timer"""
-    return timer.time()
+    return _timer.time()
 
 
 def set_timer(new_timer):
     """Set timer to another compatible instance, such as brain.timer"""
-    global timer
-    timer = new_timer
+    global _timer
+    _timer = new_timer

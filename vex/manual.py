@@ -18,7 +18,6 @@ controller.buttonB.pressed(lambda: motor_b.spin(FORWARD))
 controller.buttonB.released(lambda: motor_b.stop())
 
 controller.buttonX.pressed(close_log)
-controller.buttonX.pressed(flush_log)
 
 while log_writer:
     get_controller_state(controller)
@@ -26,4 +25,4 @@ while log_writer:
     get_motor_state(motor_a)
     get_motor_state(motor_a)
 
-    sleep(10000)
+    sleep(1000)

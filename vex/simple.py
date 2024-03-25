@@ -24,7 +24,6 @@ controller.buttonA.released(print, ("buttonA", "released"))
 controller.buttonB.pressed(print, ("buttonB", "pressed"))
 controller.buttonB.released(print, ("buttonB", "released"))
 
-
 def detect_axis_threshold(
     axis: TeleController.Axis, threshold: int, reported: List[int]
 ) -> None:
