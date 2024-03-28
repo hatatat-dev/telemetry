@@ -1,7 +1,7 @@
 from record import *
 from state import *
 from log import *
-
+from thread import *
 
 def get_controller_state(controller: Controller, tag: str = "") -> ControllerState:
     """Get controller state and save the telemetry record for that"""
@@ -11,7 +11,9 @@ def get_controller_state(controller: Controller, tag: str = "") -> ControllerSta
 
     log_record(
         Record(
-            create_record_header(timestamp, controller, "state", tag),
+            create_record_header(
+                timestamp, get_current_thread(), controller, "state", tag
+            ),
             state,
         )
     )
@@ -27,7 +29,9 @@ def get_inertial_state(inertial: Inertial, tag: str = "") -> InertialState:
 
     log_record(
         Record(
-            create_record_header(timestamp, inertial, "state", tag),
+            create_record_header(
+                timestamp, get_current_thread(), inertial, "state", tag
+            ),
             state,
         )
     )
@@ -43,7 +47,7 @@ def get_motor_state(motor: Motor, tag: str = "") -> MotorState:
 
     log_record(
         Record(
-            create_record_header(timestamp, motor, "state", tag),
+            create_record_header(timestamp, get_current_thread(), motor, "state", tag),
             state,
         )
     )
@@ -218,3 +222,38 @@ class TeleController(Controller):
                     self, button_name, getattr(self, button_name)
                 ),
             )
+
+
+class TeleThread(Thread):
+    def __init__(
+        self,
+        callback: Callable[..., None],
+        arg: tuple = (),
+        name: str = "",
+        tag: str = "",
+    ):
+        self.callback = callback
+        self.arg = arg
+
+        self.name = name
+        self.tag = tag
+
+        super().__init__(self.callback_wrapper, arg)
+
+    def callback_wrapper(self):
+        set_current_thread(self.name)
+        log_method_call(get_timestamp(), get_current_thread(), self, "enter", self.tag)
+        try:
+            self.callback(*self.arg)
+        except Exception as e:
+            print(e)
+            log_method_call(
+                get_timestamp(), get_current_thread(), self, "leave", self.tag, 1
+            )
+            raise
+
+        log_method_call(get_timestamp(), get_current_thread(), self, "leave", self.tag)
+
+    def stop(self):
+        log_method_call(get_timestamp(), get_current_thread(), self, "stop", self.tag)
+        return self.stop()

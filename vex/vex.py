@@ -54,13 +54,18 @@ class Timer:
         # TODO: implement
         raise NotImplemented()
 
-class Thread(threading.Thread):
-    """Replace stub Timer with this one that uses time.time()"""
-    def __init__(self, callback: Callable[...,None], arg: tuple=()):
-        super().__init__(target=callback, args=arg)
-        self.run()
 
+class Thread:
+    """Replace stub Timer with this one that uses time.time()"""
+
+    def __init__(self, callback: Callable[..., None], arg: tuple = ()):
+        self.thread = threading.Thread(target=callback, args=arg)
+        self.thread.start()
+
+    def stop(self):
+        # TODO: implement
+        raise NotImplemented()
 
     @staticmethod
-    def sleep_for(duration, units=TimeUnits.MSEC): # type: ignore
+    def sleep_for(duration, units=TimeUnits.MSEC):  # type: ignore
         sleep(duration, units)

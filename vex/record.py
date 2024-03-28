@@ -1,12 +1,16 @@
 from collections import namedtuple
 
-RecordHeader = namedtuple("RecordHeader", ["timestamp", "cls", "name", "method", "tag"])
+RecordHeader = namedtuple(
+    "RecordHeader", ["timestamp", "thread", "cls", "name", "method", "tag"]
+)
 """Tuple with header information for individual telemetry records"""
 
 
 def append_record_header(buffer: bytearray, header: RecordHeader):
     """Append the record header to the buffer"""
     buffer.extend(str(header.timestamp).encode())
+    buffer.append(44)
+    buffer.extend(header.thread.encode())
     buffer.append(44)
     buffer.extend(header.cls.encode())
     buffer.append(44)
@@ -57,6 +61,14 @@ def parse_record_header(line: str, line_number: int):
 
     index = line.find(",", offset)
     if index < 0:
+        raise Exception("no record thread on line " + str(line_number))
+
+    thread = line[offset:index]
+
+    offset = index + 1
+
+    index = line.find(",", offset)
+    if index < 0:
         raise Exception("no record cls on line " + str(line_number))
 
     cls = line[offset:index]
@@ -81,25 +93,28 @@ def parse_record_header(line: str, line_number: int):
 
     index = line.find(",", offset)
     if index < 0:
-        return RecordHeader(timestamp, cls, name, method, line[offset:-1]), None
+        return RecordHeader(timestamp, thread, cls, name, method, line[offset:-1]), None
 
     return (
-        RecordHeader(timestamp, cls, name, method, line[offset:index]),
+        RecordHeader(timestamp, thread, cls, name, method, line[offset:index]),
         line[index + 1 : -1],
     )
 
 
 def create_record_header(
-    timestamp: int, obj: object, method: str, tag: str
+    timestamp: int, thread: str, obj, method: str, tag: str
 ) -> RecordHeader:
     """Create a header for telemetry record with current timestamp"""
-    cls = obj.__class__.__name__
-    if cls.startswith("Tele"):
-        cls = cls[4:]
+    if isinstance(obj, tuple):
+        cls, name = obj
+    else:
+        cls = obj.__class__.__name__
+        if cls.startswith("Tele"):
+            cls = cls[4:]
 
-    name = getattr(obj, "name", "") or ("id_" + str(id(obj)))
+        name = getattr(obj, "name", "") or ("id_" + str(id(obj)))
 
-    return RecordHeader(timestamp, cls, name, method, tag)
+    return RecordHeader(timestamp, thread, cls, name, method, tag)
 
 
 Record = namedtuple("Record", ["header", "args"])
@@ -107,11 +122,17 @@ Record = namedtuple("Record", ["header", "args"])
 
 
 def create_method_call_record(
-    timestamp: int, obj: object, method: str, tag: str, *args: float, **kwargs: float
+    timestamp: int,
+    thread: str,
+    obj: object,
+    method: str,
+    tag: str,
+    *args: float,
+    **kwargs: float
 ) -> Record:
     """Create a telemetry record for a method call"""
     return Record(
-        create_record_header(timestamp, obj, method, tag),
+        create_record_header(timestamp, thread, obj, method, tag),
         args + tuple(kwargs.values()),
     )
 

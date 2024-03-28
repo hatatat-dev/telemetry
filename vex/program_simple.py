@@ -4,25 +4,22 @@ from tele import *
 from brain import *
 from log import *
 
-filename = "records.csv"
-
-open_log(filename)
+open_log("simple.csv")
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)
 motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 
 
-brain.screen.print("clear", filename)
+brain.screen.print("clear", get_log_filename())
 brain.screen.next_row()
-
-brain.sdcard.savefile(filename, bytearray())
 
 controller.buttonA.pressed(print, ("buttonA", "pressed"))
 controller.buttonA.released(print, ("buttonA", "released"))
 
 controller.buttonB.pressed(print, ("buttonB", "pressed"))
 controller.buttonB.released(print, ("buttonB", "released"))
+
 
 def detect_axis_threshold(
     axis: TeleController.Axis, threshold: int, reported: List[int]

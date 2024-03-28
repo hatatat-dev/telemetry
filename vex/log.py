@@ -3,9 +3,11 @@ import io
 from record import *
 from mock_timer import *
 from device import *
+from thread import *
 
 records = []
 """(Partial) list of telemetry records in this run"""
+
 
 log_writer = None
 """Writer to the log file"""
@@ -25,6 +27,23 @@ def open_log(filename: str):
     buffer = bytearray()
     append_csv_header(buffer)
     log_writer.write(buffer)
+
+
+def get_log_filename():
+    """Get log filename, if it is open"""
+    return log_writer.name if log_writer else None
+
+
+def log(obj, method: str, tag: str = "", *args, **kwargs):
+    """Shortcut for logging a telemetry record"""
+    log_record(
+        Record(
+            create_record_header(
+                get_timestamp(), get_current_thread(), obj, method, tag
+            ),
+            args,
+        )
+    )
 
 
 def flush_log():
@@ -59,10 +78,18 @@ def log_record(record: Record) -> None:
 
 
 def log_method_call(
-    timestamp: int, obj: object, method: str, tag: str, *args: float, **kwargs: float
+    timestamp: int,
+    thread: str,
+    obj: object,
+    method: str,
+    tag: str,
+    *args: float,
+    **kwargs: float
 ):
     """Save telemetry record for the method call"""
-    log_record(create_method_call_record(timestamp, obj, method, tag, *args, **kwargs))
+    log_record(
+        create_method_call_record(timestamp, thread, obj, method, tag, *args, **kwargs)
+    )
 
 
 def wrap_method_with_log(obj, method: str, tag: str, original):
@@ -70,8 +97,9 @@ def wrap_method_with_log(obj, method: str, tag: str, original):
 
     def wrapped(*args, **kwargs):
         timestamp = get_timestamp()
+        thread = get_current_thread()
+        log_method_call(timestamp, thread, obj, method, tag, *args, **kwargs)
         result = original(*args, **kwargs)
-        log_method_call(timestamp, obj, method, tag, *args, **kwargs)
         return result
 
     return wrapped
@@ -83,12 +111,13 @@ def wrap_callback_with_log(
     """Wrap given callback to log a telemetry record"""
 
     timestamp = get_timestamp()
+    thread = get_current_thread()
     result = callback(*args)
     if result is None:
         # No value returned from the callback
         if unconditional:
             # Only save telemetry record if it is unconditional
-            log_method_call(timestamp, obj, method, tag)
+            log_method_call(timestamp, thread, obj, method, tag)
     else:
         # Some value returned from the callback, save telemetry record
-        log_method_call(timestamp, obj, method, tag, result)
+        log_method_call(timestamp, thread, obj, method, tag, result)

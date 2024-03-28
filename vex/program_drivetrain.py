@@ -4,9 +4,7 @@ from tele import *
 from brain import *
 from log import *
 
-filename = "drivetrain.csv"
-
-open_log(filename)
+open_log("drivertrain.csv")
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)
@@ -14,10 +12,8 @@ motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 motor_b = TeleMotor(Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b")
 
 
-brain.screen.print("clear", filename)
+brain.screen.print("clear", get_log_filename())
 brain.screen.next_row()
-
-brain.sdcard.savefile(filename, bytearray())
 
 controller.buttonA.pressed(print, ("buttonA", "pressed"))
 controller.buttonA.released(print, ("buttonA", "released"))
