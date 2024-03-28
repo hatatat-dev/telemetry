@@ -5,33 +5,39 @@ from mock_timer import *
 from device import *
 from thread import *
 
-records = []
-"""(Partial) list of telemetry records in this run"""
-
-
-log_writer = None
+_log_writer = None
 """Writer to the log file"""
+
+_log_filename = None
+"""Log filename"""
 
 
 def open_log(filename: str):
     """Open log file for writing"""
-    global log_writer
+    global _log_writer
+    global _log_filename
 
     # Close log file if it's open
     close_log()
 
     # Open file for binary (byte-based) writing
-    log_writer = open(filename, "wb")
+    _log_writer = open(filename, "wb")
+    _log_filename = filename
 
     # Write CSV header
     buffer = bytearray()
     append_csv_header(buffer)
-    log_writer.write(buffer)
+    _log_writer.write(buffer)
+
+
+def is_log_open():
+    """Tell whether log file is open for writing"""
+    return bool(_log_writer)
 
 
 def get_log_filename():
     """Get log filename, if it is open"""
-    return log_writer.name if log_writer else None
+    return _log_filename
 
 
 def log(obj, method: str, tag: str = "", *args, **kwargs):
@@ -48,47 +54,42 @@ def log(obj, method: str, tag: str = "", *args, **kwargs):
 
 def flush_log():
     """Flush content written to log file"""
-    if log_writer:
-        log_writer.flush()
+    if _log_writer:
+        _log_writer.flush()
 
 
 def close_log():
     """Close log file"""
-    global log_writer
-    if log_writer:
-        log_writer.flush()
-        log_writer.close()
-        log_writer = None
+    global _log_writer
+    global _log_filename
+    if _log_writer:
+        _log_writer.flush()
+        _log_writer.close()
+        _log_writer = None
+        _log_filename = None
 
 
 def log_record(record: Record) -> None:
     """Save the telemetry record to the record list and the record file"""
 
-    # Append record to the list of records
-    records.append(record)
-
     if not is_running_on_device:
         print(record)
 
-    if log_writer:
-        # Append record to the file as a line in CSV format
-        buffer = bytearray()
-        append_record(buffer, record)
-        log_writer.write(buffer)
+    if not _log_writer:
+        return
+
+    # Append record to the file as a line in CSV format
+    buffer = bytearray()
+    append_record(buffer, record)
+    _log_writer.write(buffer)
 
 
-def log_method_call(
-    timestamp: int,
-    thread: str,
-    obj: object,
-    method: str,
-    tag: str,
-    *args: float,
-    **kwargs: float
-):
+def log_method_call(obj: object, method: str, tag: str, *args: float, **kwargs: float):
     """Save telemetry record for the method call"""
     log_record(
-        create_method_call_record(timestamp, thread, obj, method, tag, *args, **kwargs)
+        create_method_call_record(
+            get_timestamp(), get_current_thread(), obj, method, tag, *args, **kwargs
+        )
     )
 
 
@@ -96,28 +97,13 @@ def wrap_method_with_log(obj, method: str, tag: str, original):
     """Wrap given method to log a telemetry record"""
 
     def wrapped(*args, **kwargs):
-        timestamp = get_timestamp()
-        thread = get_current_thread()
-        log_method_call(timestamp, thread, obj, method, tag, *args, **kwargs)
-        result = original(*args, **kwargs)
-        return result
+        log_method_call(obj, method, tag, *args, **kwargs)
+        return original(*args, **kwargs)
 
     return wrapped
 
 
-def wrap_callback_with_log(
-    obj, method: str, tag: str, callback, unconditional: bool, *args
-):
+def wrap_callback_with_log(obj, method: str, tag: str, callback, *args):
     """Wrap given callback to log a telemetry record"""
-
-    timestamp = get_timestamp()
-    thread = get_current_thread()
-    result = callback(*args)
-    if result is None:
-        # No value returned from the callback
-        if unconditional:
-            # Only save telemetry record if it is unconditional
-            log_method_call(timestamp, thread, obj, method, tag)
-    else:
-        # Some value returned from the callback, save telemetry record
-        log_method_call(timestamp, thread, obj, method, tag, result)
+    log_method_call(obj, method, tag)
+    return callback(*args)

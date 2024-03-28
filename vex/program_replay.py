@@ -7,9 +7,6 @@ from log_reader import *
 
 open_log("replay.csv")
 
-motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
-motor_b = TeleMotor(Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b")
-
 motors = {
     "motor_a": TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a"),
     "motor_b": TeleMotor(Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b"),

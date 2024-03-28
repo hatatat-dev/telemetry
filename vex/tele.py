@@ -3,6 +3,7 @@ from state import *
 from log import *
 from thread import *
 
+
 def get_controller_state(controller: Controller, tag: str = "") -> ControllerState:
     """Get controller state and save the telemetry record for that"""
 
@@ -121,35 +122,6 @@ class TeleInertial(Inertial):
 class TeleController(Controller):
     """Controller that saves telemetry records when its methods are called"""
 
-    class TeleAxis:
-        """Axis wrapper that saves telemetry records for callbacks"""
-
-        def __init__(
-            self, controller: "TeleController", name: str, original: Controller.Axis
-        ):
-            self.controller = controller
-            self.name = name
-            self.original = original
-
-        def value(self):
-            return self.original.value()
-
-        def position(self):
-            return self.original.position()
-
-        def changed(self, callback: Callable[..., None], arg: tuple = ()):
-            return self.original.changed(
-                wrap_callback_with_log,
-                (
-                    self.controller,
-                    self.name + "_changed",
-                    self.controller.tag,
-                    callback,
-                    False,
-                )
-                + arg,
-            )
-
     class TeleButton:
         """Button wrapper that saves telemetry records for callbacks"""
 
@@ -194,13 +166,6 @@ class TeleController(Controller):
         self.name = name
         self.tag = tag
 
-        for axis_name in ["axis1", "axis2", "axis3", "axis4"]:
-            setattr(
-                self,
-                axis_name,
-                TeleController.TeleAxis(self, axis_name, getattr(self, axis_name)),
-            )
-
         for button_name in [
             "buttonL1",
             "buttonL2",
@@ -242,18 +207,16 @@ class TeleThread(Thread):
 
     def callback_wrapper(self):
         set_current_thread(self.name)
-        log_method_call(get_timestamp(), get_current_thread(), self, "enter", self.tag)
+        log_method_call(self, "enter", self.tag)
         try:
             self.callback(*self.arg)
         except Exception as e:
             print(e)
-            log_method_call(
-                get_timestamp(), get_current_thread(), self, "leave", self.tag, 1
-            )
+            log_method_call(self, "leave", self.tag, 1)
             raise
 
-        log_method_call(get_timestamp(), get_current_thread(), self, "leave", self.tag)
+        log_method_call(self, "leave", self.tag)
 
     def stop(self):
-        log_method_call(get_timestamp(), get_current_thread(), self, "stop", self.tag)
+        log_method_call(self, "stop", self.tag)
         return self.stop()

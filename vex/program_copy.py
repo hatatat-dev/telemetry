@@ -3,7 +3,7 @@
 from log_reader import *
 from log import *
 
-log_reader = LogReader("records.csv")
+log_reader = LogReader("simple.csv")
 
 open_log("copy.csv")
 

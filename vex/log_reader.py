@@ -29,6 +29,7 @@ class LogReader:
 
             if index >= 0:
                 # Newline in the buffer, return line up to and including it
+                self.line_number += 1
                 line = self.buffer[self.offset : index + 1]
                 self.offset = index + 1
                 return line

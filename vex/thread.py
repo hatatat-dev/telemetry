@@ -4,8 +4,9 @@ _thread.get_ident()
 
 _thread_names = {}
 
-MAIN_THREAD="main"
+MAIN_THREAD = "main"
 """Main thread"""
+
 
 def get_current_thread() -> str:
     """Get current thread name"""
@@ -19,6 +20,7 @@ def get_current_thread() -> str:
 def set_current_thread(thread: str):
     """Set current thread name"""
     _thread_names[_thread.get_ident()] = thread
+
 
 # Current is the main thread
 set_current_thread(MAIN_THREAD)

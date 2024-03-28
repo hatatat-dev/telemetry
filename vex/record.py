@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 RecordHeader = namedtuple(
     "RecordHeader", ["timestamp", "thread", "cls", "name", "method", "tag"]
 )
@@ -21,7 +22,8 @@ def append_record_header(buffer: bytearray, header: RecordHeader):
     buffer.extend(header.tag.encode())
 
 
-RECORD_HEADER_HEADER = ",".join(RecordHeader._fields)
+# RecordHeader._fields doesn't exist on the device
+RECORD_HEADER_HEADER = "timestamp,thread,cls,name,method,tag"
 """CSV header with just the RecordHeader fields without args"""
 
 

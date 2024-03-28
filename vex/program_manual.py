@@ -19,7 +19,7 @@ controller.buttonB.released(lambda: motor_b.stop())
 
 controller.buttonX.pressed(close_log)
 
-while log_writer:
+while is_log_open():
     get_controller_state(controller)
     get_inertial_state(inertial)
     get_motor_state(motor_a)
