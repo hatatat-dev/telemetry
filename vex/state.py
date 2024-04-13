@@ -156,6 +156,85 @@ def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
     )
 
 
+GpsState = namedtuple(
+    "GpsState",
+    [
+        "installed",
+        "timestamp",
+        "heading",
+        "rotation",
+        "x_position",
+        "y_position",
+        "quality",
+        "is_calibrating",
+        "orientation_roll",
+        "orientation_pitch",
+        "orientation_yaw",
+        "gyro_rate_xaxis",
+        "gyro_rate_yaxis",
+        "gyro_rate_zaxis",
+        "acceleration_xaxis",
+        "acceleration_yaxis",
+        "acceleration_zaxis",
+        "turn_type",
+    ],
+)
+"""State of Gps"""
+
+
+def GpsState_from_args(args):
+    """Create GpsState from float args"""
+    return GpsState(
+        *map_args(
+            (
+                bool,
+                int,
+                None,
+                None,
+                None,
+                None,
+                None,
+                bool,
+                AxisType_values,
+                AxisType_values,
+                AxisType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                OrientationType_values,
+                TurnType_values,
+            ),
+            args,
+        )
+    )
+
+
+def get_gps_state_no_record(gps: Gps) -> GpsState:
+    """Get state of a Gps without writing a telemetry record"""
+    return GpsState(
+        gps.installed(),
+        gps.timestamp(),
+        gps.heading(),
+        gps.rotation(),
+        gps.x_position(),
+        gps.y_position(),
+        gps.quality(),
+        gps.is_calibrating(),
+        gps.orientation(OrientationType.ROLL),
+        gps.orientation(OrientationType.PITCH),
+        gps.orientation(OrientationType.YAW),
+        gps.gyro_rate(AxisType.XAXIS),
+        gps.gyro_rate(AxisType.YAXIS),
+        gps.gyro_rate(AxisType.ZAXIS),
+        gps.acceleration(AxisType.XAXIS),
+        gps.acceleration(AxisType.YAXIS),
+        gps.acceleration(AxisType.ZAXIS),
+        gps.get_turn_type(),
+    )
+
+
 MotorState = namedtuple(
     "MotorState",
     [
@@ -179,28 +258,6 @@ MotorState = namedtuple(
 """State of a motor"""
 
 
-def get_motor_state_no_record(motor: Motor) -> MotorState:
-    """Get state of a motor without writing a telemetry record"""
-    return MotorState(
-        motor.installed(),
-        motor.timestamp(),
-        motor.get_timeout(),
-        motor.is_spinning(),
-        motor.is_done(),
-        motor.is_spinning_mode(),
-        motor.direction(),
-        motor.position(),
-        motor.velocity(),
-        motor.current(),
-        motor.power(),
-        motor.torque(),
-        motor.efficiency(),
-        motor.temperature(),
-        motor.command(),
-    )
-
-
-# Implement from_args method for MotorState
 def MotorState_from_args(args):
     """Create MotorState from float args"""
     return MotorState(
@@ -224,4 +281,25 @@ def MotorState_from_args(args):
             ),
             args,
         )
+    )
+
+
+def get_motor_state_no_record(motor: Motor) -> MotorState:
+    """Get state of a motor without writing a telemetry record"""
+    return MotorState(
+        motor.installed(),
+        motor.timestamp(),
+        motor.get_timeout(),
+        motor.is_spinning(),
+        motor.is_done(),
+        motor.is_spinning_mode(),
+        motor.direction(),
+        motor.position(),
+        motor.velocity(),
+        motor.current(),
+        motor.power(),
+        motor.torque(),
+        motor.efficiency(),
+        motor.temperature(),
+        motor.command(),
     )
