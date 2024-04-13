@@ -14537,6 +14537,49 @@ var So;
       .getConfiguration()
       .get(i.Extension.Settings.buildTypeID, d.ConfigurationTarget.Global)
       .toString();
+
+    // Incomplete line from the input
+    let incompleteLine = Buffer.concat([]);
+
+    // Handle telemetry input Buffer
+    let handleTelemetry = (input) => {
+      try {
+        // Offset into the input Buffer
+        let offset = 0;
+
+        while (true) {
+          // Look for newline
+          let index = input.indexOf(10, offset);
+
+          if (index == -1) {
+            // No newline found, append remaining input to the incomplete line
+            incompleteLine = Buffer.concat([incompleteLine, input.subarray(offset)]);
+            break;
+          }
+
+          // Newline found, complete the line up to the newline
+          let line = Buffer.concat([incompleteLine, input.subarray(offset, index)]);
+
+          // Clear the incomplete line
+          incompleteLine = Buffer.concat([]);
+
+          // Advance the index past newline
+          offset = index + 1;
+
+          if (line.length && line[line.length - 1] == 13) {
+            // Remove carriage return before the newline
+            line = line.subarray(0, line.length - 1);
+          }
+
+          // Output the complete line
+          p.write("[[" + line + "]]\r\n");
+        }
+      } catch (e) {
+        // Output the error
+        p.write(`${e} ${e.stack}\r\n`, ee.TextColors.red);
+      }
+    };
+
     (c.buildBtn.text = "$(vex-download)"),
       (c.buildBtn.tooltip = `${B} and Download`),
       (c.deviceListBtn.text = `$(vex-${m.platform}-${m.device}) ${I}`),
@@ -14555,6 +14598,7 @@ var So;
                   `${e.selectedDevice.platform} ${e.selectedDevice.device} ( ${e.selectedDevice.robotName} )->`,
                   ee.TextColors.magenta,
                 ),
+              handleTelemetry(T),
               p.write(T),
               $.deviceWSList.forEach((me) => me[0].send(T)));
           }));
