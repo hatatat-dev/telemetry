@@ -7,17 +7,18 @@ from log_reader import *
 
 open_log("replay.csv")
 
-motors = {
-    "motor_a": TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a"),
-    "motor_b": TeleMotor(Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b"),
+cls_targets = {
+    "Motor": {
+        "motor_a": TeleMotor(
+            Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a"
+        ),
+        "motor_b": TeleMotor(
+            Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b"
+        ),
+    },
 }
 
 log_reader = LogReader("manual.csv")
-
-method_mappings = {
-    "spin": (DirectionType_values,),
-    "stop": (),
-}
 
 while True:
     header, rest = log_reader.read_record_header()
@@ -25,15 +26,17 @@ while True:
     if not header:
         break
 
-    if header.cls != "Motor":
+    targets = cls_targets.get(header.cls)
+
+    if not targets:
         continue
 
-    motor = motors.get(header.name)
+    target = targets.get(header.name)
 
-    if not motor:
+    if not target:
         continue
 
-    mappings = method_mappings.get(header.method)
+    mappings = target.methods.get(header.method)
 
     if mappings is None:
         continue
@@ -45,6 +48,6 @@ while True:
     if delay_ms > 0:
         sleep(delay_ms, TimeUnits.MSEC)
 
-    getattr(motor, header.method)(*args)
+    getattr(target, header.method)(*args)
 
 close_log()

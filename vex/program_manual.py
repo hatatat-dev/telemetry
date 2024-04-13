@@ -17,12 +17,14 @@ controller.buttonA.released(lambda: motor_a.stop())
 controller.buttonB.pressed(lambda: motor_b.spin(FORWARD))
 controller.buttonB.released(lambda: motor_b.stop())
 
+controller.buttonY.pressed(lambda: motor_a.spin_for(FORWARD, 10, TURNS))
+
 controller.buttonX.pressed(close_log)
 
 while is_log_open():
-    get_controller_state(controller)
-    get_inertial_state(inertial)
-    get_motor_state(motor_a)
-    get_motor_state(motor_a)
+    controller_state = get_controller_state(controller)
+    ineratial_state = get_inertial_state(inertial)
+    motor_a_state = get_motor_state(motor_a)
+    motor_b_state = get_motor_state(motor_a)
 
     sleep(1000)

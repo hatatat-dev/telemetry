@@ -96,7 +96,6 @@ class TeleController(Controller):
                     self.name + "_pressed",
                     self.controller.tag,
                     callback,
-                    True,
                 )
                 + arg,
             )
@@ -109,7 +108,6 @@ class TeleController(Controller):
                     self.name + "_released",
                     self.controller.tag,
                     callback,
-                    True,
                 )
                 + arg,
             )
@@ -167,7 +165,7 @@ class TeleInertial(Inertial):
     def collision(self, callback: Callable[..., None], arg: tuple = ()):
         return super().collision(
             wrap_callback_with_log,
-            (self, "collision", self.tag, callback, False) + arg,
+            (self, "collision", self.tag, callback) + arg,
         )
 
 
@@ -200,24 +198,39 @@ class TeleGps(Gps):
 class TeleMotor(Motor):
     """Motor that saves telemetry records when its methods are called"""
 
+    methods = {
+        "set_velocity": (None, VelocityUnits_values),
+        "set_reversed": (bool,),
+        "set_stopping": (BrakeType_values,),
+        "reset_position": (),
+        "set_position": (None, RotationUnits_values),
+        "set_timeout": (None, TimeUnits_values),
+        "spin": (DirectionType_values, None, VelocityUnits_values),
+        "spin_to_position": (
+            None,
+            RotationUnits_values,
+            None,
+            VelocityUnits_values,
+            None,
+        ),
+        "spin_for": (
+            DirectionType_values,
+            None,
+            RotationUnits_values,
+            None,
+            VelocityUnits_values,
+            None,
+        ),
+        "stop": (BrakeType_values,),
+        "set_max_torque": (None, TorqueUnits_values),
+    }
+
     def __init__(self, port: int, *args, name: str = "", tag: str = "", **kwargs):
         super().__init__(port, *args, **kwargs)
         self.name = name
         self.tag = tag
 
-        for method in [
-            "set_velocity",
-            "set_reversed",
-            "set_stopping",
-            "reset_position",
-            "set_position",
-            "set_timeout",
-            "spin",
-            "spin_to_position",
-            "spin_for",
-            "stop",
-            "set_max_torque",
-        ]:
+        for method in TeleMotor.methods:
             setattr(
                 self,
                 method,
