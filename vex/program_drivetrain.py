@@ -4,7 +4,7 @@ from tele import *
 from brain import *
 from log import *
 
-open_log("drivertrain.csv")
+open_log("drivetrain.csv")
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT2)

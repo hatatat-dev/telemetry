@@ -14538,11 +14538,87 @@ var So;
       .get(i.Extension.Settings.buildTypeID, d.ConfigurationTarget.Global)
       .toString();
 
-    // Incomplete line from the input
-    let incompleteLine = Buffer.concat([]);
+    // Path to log file
+    let logPath = null;
 
-    // Handle telemetry input Buffer
-    let handleTelemetry = (input) => {
+    // Records for the log file
+    let logRecords = null;
+
+    // Patterns for various expected lines
+    let openLogRegExp = /^open_log\("([^"]*)"\)$/;
+    let closeLogRegExp = /^close_log\(\)$/;
+    let flushLogRegExp = /^flush_log\(\)$/;
+    let headerRegExp = /^timestamp,thread,cls,name,method,tag.*$/;
+    let recordRegExp = /^\d+,\w+,\w+,\w+,\w*,\w*.*/;
+
+    // Pattern for allowed log filename
+    let filenameRegExp = /^\w+\.csv$/i;
+
+    // Helper async function to write log records to log path
+    let writeLog = async () =>
+      await d.workspace.fs.writeFile(
+        logPath,
+        new TextEncoder().encode(logRecords.join("")),
+      );
+
+    // Function to handle line from device
+    let handleLine = async (line) => {
+      let openLogMatch = line.match(openLogRegExp);
+      if (openLogMatch) {
+        let filename = openLogMatch[1];
+        if (!filename.match(filenameRegExp)) {
+          throw new Error(`Unexpected filename for openLog: ${filename}`);
+        }
+
+        let promise = logPath ? writeLog() : null;
+
+        logPath = d.Uri.joinPath(o.selectedProject.projectUri, filename);
+        logRecords = [];
+
+        if (promise) {
+          await promise;
+        }
+
+        return;
+      }
+
+      if (line.match(closeLogRegExp)) {
+        if (logPath) {
+          let promise = writeLog();
+
+          logPath = null;
+          logRecords = [];
+
+          await promise;
+        }
+
+        return;
+      }
+
+      if (line.match(flushLogRegExp)) {
+        if (logPath) {
+          await writeLog();
+        }
+
+        return;
+      }
+
+      if (line.match(headerRegExp) || line.match(recordRegExp)) {
+        if (logPath) {
+          if (logRecords.push(line + "\n") % 10 === 0) {
+            // Flush periodically
+            await writeLog();
+          }
+        }
+        return;
+      }
+    };
+
+    // Incomplete line from the input
+    let incompleteLine = null;
+
+    // Function to handle input from device
+    let handleInput = (input) => {
       try {
         // Offset into the input Buffer
         let offset = 0;
@@ -14553,15 +14629,19 @@ var So;
 
           if (index == -1) {
             // No newline found, append remaining input to the incomplete line
-            incompleteLine = Buffer.concat([incompleteLine, input.subarray(offset)]);
+            incompleteLine = incompleteLine
+              ? Buffer.concat([incompleteLine, input.subarray(offset)])
+              : input.subarray(offset);
             break;
           }
 
           // Newline found, complete the line up to the newline
-          let line = Buffer.concat([incompleteLine, input.subarray(offset, index)]);
+          let line = incompleteLine
+            ? Buffer.concat([incompleteLine, input.subarray(offset, index)])
+            : input.subarray(offset, index);
 
           // Clear the incomplete line
-          incompleteLine = Buffer.concat([]);
+          incompleteLine = null;
 
           // Advance the index past newline
           offset = index + 1;
@@ -14571,8 +14651,7 @@ var So;
             line = line.subarray(0, line.length - 1);
           }
 
-          // Output the complete line
-          p.write("[[" + line + "]]\r\n");
+          handleLine(line.toString());
         }
       } catch (e) {
         // Output the error
@@ -14598,9 +14677,9 @@ var So;
                   `${e.selectedDevice.platform} ${e.selectedDevice.device} ( ${e.selectedDevice.robotName} )->`,
                   ee.TextColors.magenta,
                 ),
-              handleTelemetry(T),
               p.write(T),
-              $.deviceWSList.forEach((me) => me[0].send(T)));
+              $.deviceWSList.forEach((me) => me[0].send(T))),
+              handleInput(T);
           }));
   }
   async function re(m) {

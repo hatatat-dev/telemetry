@@ -61,6 +61,8 @@ def flush_log():
     if _log_writer:
         _log_writer.flush()
 
+        sys.stdout.buffer.write(b"flush_log()" + NEWLINE_FOR_STDOUT)
+
 
 def close_log():
     """Close log file"""

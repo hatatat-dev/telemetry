@@ -23,3 +23,6 @@ sleep(20)
 thread_a = TeleThread(func_a, (), "thread_a")
 sleep(30)
 thread_b = TeleThread(func_b, (), "thread_b")
+
+sleep(2000)
+close_log()
