@@ -5,13 +5,6 @@ from vex import *
 from record import *
 from enums import *
 
-DIRECTION_TYPES = (
-    DirectionType.FORWARD,
-    DirectionType.REVERSE,
-    DirectionType.UNDEFINED,
-)
-"""DirectionType enum objects, indexed by their values"""
-
 
 ControllerState = namedtuple(
     "ControllerState",
