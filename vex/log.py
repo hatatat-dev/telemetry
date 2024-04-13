@@ -1,4 +1,5 @@
 import io
+import sys
 
 from record import *
 from mock_timer import *
@@ -24,10 +25,13 @@ def open_log(filename: str):
     _log_writer = open(filename, "wb")
     _log_filename = filename
 
+    sys.stdout.buffer.write(
+        b'open_log("' + filename.encode() + b'")' + NEWLINE_FOR_STDOUT
+    )
+
     # Write CSV header
-    buffer = bytearray()
-    append_csv_header(buffer)
-    _log_writer.write(buffer)
+    _log_writer.write(CSV_HEADER)
+    sys.stdout.buffer.write(CSV_HEADER_FOR_STDOUT)
 
 
 def is_log_open():
@@ -68,12 +72,11 @@ def close_log():
         _log_writer = None
         _log_filename = None
 
+        sys.stdout.buffer.write(b"close_log()" + NEWLINE_FOR_STDOUT)
+
 
 def log_record(record: Record) -> None:
     """Save the telemetry record to the record list and the record file"""
-
-    if not is_running_on_device:
-        print(record)
 
     if not _log_writer:
         return
@@ -82,6 +85,8 @@ def log_record(record: Record) -> None:
     buffer = bytearray()
     append_record(buffer, record)
     _log_writer.write(buffer)
+    format_newline_for_stdout(buffer)
+    sys.stdout.buffer.write(buffer)
 
 
 def log_method_call(obj: object, method: str, tag: str, *args: float, **kwargs: float):

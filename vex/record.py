@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from device import *
+
 
 RecordHeader = namedtuple(
     "RecordHeader", ["timestamp", "thread", "cls", "name", "method", "tag"]
@@ -36,6 +38,17 @@ def append_csv_header(buffer: bytearray, args_len: int = 20):
         buffer.extend(str(index).encode())
 
     buffer.append(10)
+
+
+CSV_HEADER = bytearray()
+"""CSV header with both RecordHeader and arg_* fields"""
+
+append_csv_header(CSV_HEADER)
+
+CSV_HEADER_FOR_STDOUT = bytearray(CSV_HEADER)
+"""CSV header with both RecordHeader and arg_* fields formatted for stdout"""
+
+format_newline_for_stdout(CSV_HEADER_FOR_STDOUT)
 
 
 def parse_record_header(line: str, line_number: int):
