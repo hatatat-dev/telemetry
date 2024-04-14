@@ -4,7 +4,7 @@ from tele import *
 from brain import *
 from log import *
 
-open_log("gps.csv")
+open_log("only_gps.csv")
 
 # Red cartridge: GearSetting.RATIO_36_1, 100 RPM
 # Green cartridge: GearSetting.RATIO_18_1, 200 RPM
@@ -15,24 +15,16 @@ MOTOR_DIRECTION = False
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT5)
 
-motor_lf = TeleMotor(
-    Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
-)
-motor_lb = TeleMotor(
-    Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
-)
+motor_lf = Motor(Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION)
+motor_lb = Motor(Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION)
 
-motor_rf = TeleMotor(
-    Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
-)
-motor_rb = TeleMotor(
-    Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
-)
+motor_rf = Motor(Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION)
+motor_rb = Motor(Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION)
 
 gps = TeleGps(Ports.PORT6, name="gps")
 
-controller.buttonA.pressed(print, ("buttonA", "pressed"))
-controller.buttonA.released(print, ("buttonA", "released"))
+controller.buttonA.pressed(lambda: gps.get_state() and None)
+controller.buttonB.pressed(lambda: inertial.get_state() and None)
 
 
 def get_volts_for_axis_value(value: int) -> float:
@@ -51,8 +43,6 @@ def control_motors_by_axis(axis_name, motor_front, motor_back):
         value = axis.value()
         volts = get_volts_for_axis_value(value)
 
-        log_method_call(controller, method, "", value, volts)
-
         motor_front.spin(FORWARD, volts, VoltageUnits.VOLT)
         motor_back.spin(FORWARD, volts, VoltageUnits.VOLT)
 
@@ -63,15 +53,3 @@ control_motors_by_axis("axis3", motor_lf, motor_lb)
 control_motors_by_axis("axis2", motor_rf, motor_rb)
 
 controller.buttonX.pressed(close_log)
-
-while is_log_open():
-    # controller_state = get_controller_state(controller)
-    _ = inertial.get_state()
-    _ = gps.get_state()
-
-    _ = motor_lf.get_state()
-    _ = motor_lb.get_state()
-    _ = motor_rf.get_state()
-    _ = motor_rb.get_state()
-
-    sleep(1000)
