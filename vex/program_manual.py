@@ -23,7 +23,7 @@ controller.buttonX.pressed(close_log)
 
 while is_log_open():
     controller_state = get_controller_state(controller)
-    ineratial_state = get_inertial_state(inertial)
+    inertial_state = get_inertial_state(inertial)
     motor_a_state = get_motor_state(motor_a)
     motor_b_state = get_motor_state(motor_a)
 

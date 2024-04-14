@@ -139,6 +139,10 @@ class TeleController(Controller):
                 ),
             )
 
+    def get_state(self):
+        """Get state and save telemetry record for that"""
+        return get_controller_state(self)
+
 
 class TeleInertial(Inertial):
     """Inertial with a default name"""
@@ -168,6 +172,10 @@ class TeleInertial(Inertial):
             (self, "collision", self.tag, callback) + arg,
         )
 
+    def get_state(self):
+        """Get state and save telemetry record for that"""
+        return get_inertial_state(self)
+
 
 class TeleGps(Gps):
     """Gps with a default name"""
@@ -193,6 +201,10 @@ class TeleGps(Gps):
                 method,
                 wrap_method_with_log(self, method, tag, getattr(self, method)),
             )
+
+    def get_state(self):
+        """Get state and save telemetry record for that"""
+        return get_gps_state(self)
 
 
 class TeleMotor(Motor):
@@ -236,6 +248,10 @@ class TeleMotor(Motor):
                 method,
                 wrap_method_with_log(self, method, tag, getattr(self, method)),
             )
+
+    def get_state(self):
+        """Get state and save telemetry record for that"""
+        return get_motor_state(self)
 
 
 class TeleThread(Thread):

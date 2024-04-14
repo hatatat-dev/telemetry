@@ -7,18 +7,29 @@ from log_reader import *
 
 open_log("replay.csv")
 
-cls_targets = {
+MOTOR_DIRECTION = False
+
+targets = {
     "Motor": {
-        "motor_a": TeleMotor(
-            Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a"
+        "motor_lf": TeleMotor(
+            Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
         ),
-        "motor_b": TeleMotor(
-            Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b"
+        "motor_lb": TeleMotor(
+            Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
+        ),
+        "motor_rf": TeleMotor(
+            Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
+        ),
+        "motor_rb": TeleMotor(
+            Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
         ),
     },
 }
 
-log_reader = LogReader("manual.csv")
+for motor in targets.get("Motor", {}).values():
+    _ = get_motor_state(motor)
+
+log_reader = LogReader("gps.csv")
 
 while True:
     header, rest = log_reader.read_record_header()
@@ -26,12 +37,12 @@ while True:
     if not header:
         break
 
-    targets = cls_targets.get(header.cls)
+    cls_targets = targets.get(header.cls)
 
-    if not targets:
+    if not cls_targets:
         continue
 
-    target = targets.get(header.name)
+    target = cls_targets.get(header.name)
 
     if not target:
         continue
@@ -49,5 +60,7 @@ while True:
         sleep(delay_ms, TimeUnits.MSEC)
 
     getattr(target, header.method)(*args)
+
+    _ = target.get_state()
 
 close_log()
