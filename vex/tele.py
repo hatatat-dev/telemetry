@@ -211,18 +211,20 @@ class TeleMotor(Motor):
     """Motor that saves telemetry records when its methods are called"""
 
     methods = {
-        "set_velocity": (None, VelocityUnits_values),
+        # VoltageUnits instead of VelocityUnits to avoid extra PID by Brain
+        # https://www.vexforum.com/t/difference-between-using-voltage-control-and-percent-control/110972
+        "set_velocity": (None, VoltageUnits_values),
         "set_reversed": (bool,),
         "set_stopping": (BrakeType_values,),
         "reset_position": (),
         "set_position": (None, RotationUnits_values),
         "set_timeout": (None, TimeUnits_values),
-        "spin": (DirectionType_values, None, VelocityUnits_values),
+        "spin": (DirectionType_values, None, VoltageUnits_values),
         "spin_to_position": (
             None,
             RotationUnits_values,
             None,
-            VelocityUnits_values,
+            VoltageUnits_values,
             None,
         ),
         "spin_for": (
@@ -230,7 +232,7 @@ class TeleMotor(Motor):
             None,
             RotationUnits_values,
             None,
-            VelocityUnits_values,
+            VoltageUnits_values,
             None,
         ),
         "stop": (BrakeType_values,),

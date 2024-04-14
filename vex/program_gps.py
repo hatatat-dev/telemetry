@@ -22,8 +22,6 @@ motor_lb = TeleMotor(
     Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
 )
 
-motor_group_left = MotorGroup(motor_lf, motor_lb)
-
 motor_rf = TeleMotor(
     Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
 )
@@ -31,26 +29,35 @@ motor_rb = TeleMotor(
     Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
 )
 
-motor_group_right = MotorGroup(motor_rf, motor_rb)
-
-drivetrain = DriveTrain(
-    motor_group_left,
-    motor_group_right,
-    wheelTravel=320,
-    trackWidth=254,
-    wheelBase=229,
-    units=DistanceUnits.MM,
-    externalGearRatio=1.0,
-)
-
 gps = TeleGps(Ports.PORT6, name="gps")
 
 
-controller.buttonA.pressed(lambda: motor_group_left.spin(FORWARD))
-controller.buttonA.released(lambda: motor_group_left.stop())
+def get_volts_for_axis_value(value: int) -> float:
+    return 12.0 * value / 127
 
-controller.buttonB.pressed(lambda: motor_group_right.spin(FORWARD))
-controller.buttonB.released(lambda: motor_group_right.stop())
+
+def control_motors_by_axis(axis_name, motor_front, motor_back):
+    """Control front and back motors by the given axis like axis3 or axis2"""
+
+    axis = getattr(controller, axis_name)
+    method = axis_name + "_changed"
+
+    def axis_changed():
+        """Callback when left axis changed"""
+
+        value = axis.value()
+        volts = get_volts_for_axis_value(value)
+
+        log_method_call(controller, method, "", value, volts)
+
+        motor_front.spin(FORWARD, volts, VoltageUnits.VOLT)
+        motor_back.spin(FORWARD, volts, VoltageUnits.VOLT)
+
+    axis.changed(axis_changed)
+
+
+control_motors_by_axis("axis3", motor_lf, motor_lb)
+control_motors_by_axis("axis2", motor_rf, motor_rb)
 
 controller.buttonX.pressed(close_log)
 

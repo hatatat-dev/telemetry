@@ -9,7 +9,7 @@
 		"creationDate": "3/16/2024, 10:52:27 AM",
 		"platform": "V5",
 		"language": "python",
-		"slot": 2,
+		"slot": 1,
 		"sdkVersion": "V5_1_0_1_19",
 		"python": {
 			"main": "vex/preprocessed.py"
