@@ -110,3 +110,33 @@ def get_steps_backward():
         ("motor_rf", 0),
         ("motor_rb", 0),
     ]
+
+
+def get_steps_turn_left():
+    """Simple steps to turn short distance left"""
+    return [
+        ("motor_lf", -4),
+        ("motor_lb", -4),
+        ("motor_rf", 4),
+        ("motor_rb", 4),
+        500,
+        ("motor_lf", 0),
+        ("motor_lb", 0),
+        ("motor_rf", 0),
+        ("motor_rb", 0),
+    ]
+
+
+def get_steps_turn_right():
+    """Simple steps to turn short distance right"""
+    return [
+        ("motor_lf", 4),
+        ("motor_lb", 4),
+        ("motor_rf", -4),
+        ("motor_rb", -4),
+        500,
+        ("motor_lf", 0),
+        ("motor_lb", 0),
+        ("motor_rf", 0),
+        ("motor_rb", 0),
+    ]
