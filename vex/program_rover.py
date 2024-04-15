@@ -20,5 +20,20 @@ controller.buttonA.pressed(
     )
 )
 
+# For current heading, turn back to zero heading by negative heading value
+controller.buttonB.pressed(lambda: pid_turn(-gps.heading()))
 
 controller.buttonX.pressed(close_log)
+
+# Calibrate both inertial and GPS sensors
+inertial.calibrate()
+gps.calibrate()
+
+while inertial.is_calibrating():
+    wait(100, MSEC)
+
+while gps.is_calibrating():
+    wait(100, MSEC)
+
+_ = inertial.get_state()
+_ = gps.get_state()

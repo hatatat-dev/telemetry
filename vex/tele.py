@@ -247,6 +247,12 @@ class TeleMotor(Motor):
         for method in TeleMotor.methods:
             setattr(
                 self,
+                "super_" + method,
+                getattr(self, method),
+            )
+
+            setattr(
+                self,
                 method,
                 wrap_method_with_log(self, method, tag, getattr(self, method)),
             )
