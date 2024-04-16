@@ -40,7 +40,9 @@ def get_volts_for_axis_value(value: int) -> float:
     return 11.0 * value / 127
 
 
-def control_motors_by_axis(axis_name, motor_front, motor_back):
+def control_motors_by_axis(
+    axis_name: str, motor_front: TeleMotor, motor_back: TeleMotor
+):
     """Control front and back motors by the given axis like axis3 or axis2"""
 
     axis = getattr(controller, axis_name)
@@ -54,8 +56,8 @@ def control_motors_by_axis(axis_name, motor_front, motor_back):
 
         log_method_call(controller, method, "", value, volts)
 
-        motor_front.spin(FORWARD, volts, VoltageUnits.VOLT)
-        motor_back.spin(FORWARD, volts, VoltageUnits.VOLT)
+        motor_front.spin_volts(FORWARD, volts)
+        motor_back.spin_volts(FORWARD, volts)
 
     axis.changed(axis_changed)
 
@@ -80,7 +82,7 @@ def run_steps(steps):
 
         # Step is (motor name, spin voltage)
         motor_name, volts = step
-        motors[motor_name].spin(FORWARD, volts, VoltageUnits.VOLT)
+        motors[motor_name].spin_volts(FORWARD, volts)
 
 
 def get_steps_forward():
@@ -143,20 +145,20 @@ def get_steps_turn_right():
     ]
 
 
-TURN_GAINS = Gains(0.05, 0, 0)
+TURN_GAINS = Gains(0.1, 0.001, 0.1)
 """Gain factors for turn PID"""
 
 # Turn is done when voltage AND angle are below thresholds
-TURN_VOLTAGE_THRESHOLD = 0.5
+TURN_VOLTAGE_THRESHOLD = 2
 """Turn voltage threshold"""
 
 TURN_ANGLE_THRESHOLD = 5.0
 """Turn angle threshold"""
 
-TURN_SLEEP_MS = 50
+TURN_SLEEP_MS = 20
 """Interval between turn PID iterations"""
 
-TURN_VOLTAGE_OFFSET = 2.0
+TURN_VOLTAGE_OFFSET = 0
 """Add that much voltage to the spin"""
 
 
@@ -164,21 +166,14 @@ def pid_turn(angle: float):
     """Turn by that angle in degrees using PID controller"""
 
     # Calculate target heading for inertial sensor
-    target = (inertial.heading() + angle) % 360
+    setpoint = (inertial.heading() + angle) % 360
 
     # Create PID controller
-    pid = TelePID(TURN_GAINS, name="turn")
+    pid = TelePID(TURN_GAINS, setpoint, wrap=360, name="turn")
 
     while True:
         # Calculate error (angle difference) between target and current heading
-        error = (target - inertial.heading()) % 360
-
-        if error > 180:
-            # Angles above 180 are in opposite direction
-            error = error - 360
-
-        # Calculate voltage using PID controller
-        voltage = pid.step(error)
+        error, voltage = pid.step(inertial.heading())
 
         # See if turn is done based on voltage AND angle thresholds
         done = (
@@ -196,10 +191,10 @@ def pid_turn(angle: float):
             voltage += TURN_VOLTAGE_OFFSET
 
         # PID controller already reports telemetry; avoid telemetry overhead here
-        motor_lf.super_spin(DirectionType.FORWARD, voltage, VoltageUnits.VOLT)
-        motor_lb.super_spin(DirectionType.FORWARD, voltage, VoltageUnits.VOLT)
-        motor_rf.super_spin(DirectionType.FORWARD, -voltage, VoltageUnits.VOLT)
-        motor_rb.super_spin(DirectionType.FORWARD, -voltage, VoltageUnits.VOLT)
+        motor_lf.no_log_spin_volts(DirectionType.FORWARD, voltage)  # type: ignore
+        motor_lb.no_log_spin_volts(DirectionType.FORWARD, voltage)  # type: ignore
+        motor_rf.no_log_spin_volts(DirectionType.FORWARD, -voltage)  # type: ignore
+        motor_rb.no_log_spin_volts(DirectionType.FORWARD, -voltage)  # type: ignore
 
         if done:
             # Turn is done

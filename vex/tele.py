@@ -211,32 +211,44 @@ class TeleMotor(Motor):
     """Motor that saves telemetry records when its methods are called"""
 
     methods = {
-        # VoltageUnits instead of VelocityUnits to avoid extra PID by Brain
-        # https://www.vexforum.com/t/difference-between-using-voltage-control-and-percent-control/110972
-        "set_velocity": (None, VoltageUnits_values),
+        "set_velocity": (None, VelocityUnits_values),
         "set_reversed": (bool,),
         "set_stopping": (BrakeType_values,),
         "reset_position": (),
         "set_position": (None, RotationUnits_values),
         "set_timeout": (None, TimeUnits_values),
-        "spin": (DirectionType_values, None, VoltageUnits_values),
+        "spin": (DirectionType_values, None, VelocityUnits_values),
         "spin_to_position": (
             None,
             RotationUnits_values,
             None,
-            VoltageUnits_values,
-            None,
+            VelocityUnits_values,
+            bool,
         ),
         "spin_for": (
             DirectionType_values,
             None,
             RotationUnits_values,
             None,
-            VoltageUnits_values,
-            None,
+            VelocityUnits_values,
+            bool,
         ),
         "stop": (BrakeType_values,),
         "set_max_torque": (None, TorqueUnits_values),
+        "spin_volts": (DirectionType_values, None),
+        "spin_volts_to_position": (
+            None,
+            RotationUnits_values,
+            None,
+            bool,
+        ),
+        "spin_volts_for": (
+            DirectionType_values,
+            None,
+            RotationUnits_values,
+            None,
+            bool,
+        ),
     }
 
     def __init__(self, port: int, *args, name: str = "", tag: str = "", **kwargs):
@@ -244,18 +256,42 @@ class TeleMotor(Motor):
         self.name = name
         self.tag = tag
 
-        for method in TeleMotor.methods:
-            setattr(
-                self,
-                "super_" + method,
-                getattr(self, method),
-            )
+        for method_name in TeleMotor.methods:
+            method = getattr(self, method_name)
+
+            setattr(self, "no_log_" + method_name, method)
 
             setattr(
                 self,
-                method,
-                wrap_method_with_log(self, method, tag, getattr(self, method)),
+                method_name,
+                wrap_method_with_log(self, method_name, tag, method),
             )
+
+    def spin_volts(self, direction: DirectionType.DirectionType, volts: vexnumber):
+        return self.no_log_spin(direction, volts, VoltageUnits.VOLT)  # type: ignore
+
+    def spin_volts_to_position(
+        self,
+        rotation: vexnumber,
+        units: RotationUnits.RotationUnits,
+        volts: vexnumber,
+        wait: bool,
+    ):
+        return self.no_log_spin_to_position(  # type: ignore
+            rotation, units, volts, VoltageUnits.VOLT, wait
+        )
+
+    def spin_volts_for(
+        self,
+        direction: DirectionType.DirectionType,
+        rot_or_time: vexnumber,
+        units: RotationUnits.RotationUnits,
+        volts: vexnumber,
+        wait: bool,
+    ):
+        return self.no_log_spin_for(  # type: ignore
+            direction, rot_or_time, units, volts, VoltageUnits.VOLT, wait
+        )
 
     def get_state(self):
         """Get state and save telemetry record for that"""

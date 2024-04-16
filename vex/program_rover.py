@@ -11,29 +11,39 @@ controller.buttonDown.pressed(lambda: run_steps(get_steps_backward()))
 controller.buttonLeft.pressed(lambda: run_steps(get_steps_turn_left()))
 controller.buttonRight.pressed(lambda: run_steps(get_steps_turn_right()))
 
-controller.buttonA.pressed(
-    lambda: run_steps(
-        get_steps_forward()
-        + get_steps_turn_left()
-        + get_steps_backward()
-        + get_steps_turn_right()
-    )
-)
 
-# For current heading, turn back to zero heading by negative heading value
-controller.buttonB.pressed(lambda: pid_turn(-gps.heading()))
+def calibrate():
+    """Calibrate both inertial and GPS sensors"""
+    inertial.calibrate()
+    gps.calibrate()
+
+    while inertial.is_calibrating():
+        wait(100, MSEC)
+
+    while gps.is_calibrating():
+        wait(100, MSEC)
+
+    inertial.set_heading(gps.heading())
+
+    _ = inertial.get_state()
+    _ = gps.get_state()
+
+
+def turn_to_zero():
+    """Turn to zero heading"""
+    before = inertial.get_state()
+    _ = gps.get_state()
+
+    pid_turn(-before.heading)
+
+    after = inertial.get_state()
+    _ = gps.get_state()
+
+
+controller.buttonA.pressed(calibrate)
+
+controller.buttonB.pressed(turn_to_zero)
 
 controller.buttonX.pressed(close_log)
 
-# Calibrate both inertial and GPS sensors
-inertial.calibrate()
-gps.calibrate()
-
-while inertial.is_calibrating():
-    wait(100, MSEC)
-
-while gps.is_calibrating():
-    wait(100, MSEC)
-
-_ = inertial.get_state()
-_ = gps.get_state()
+calibrate()
