@@ -14,7 +14,7 @@ _timer = MockTimer()
 """Global timer"""
 
 
-def get_timestamp():
+def get_timestamp() -> int:
     """Get current timestamp from the global timer"""
     return _timer.time()
 

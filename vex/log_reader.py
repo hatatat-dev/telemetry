@@ -1,3 +1,4 @@
+from typing import *  # type: ignore
 from record import *
 
 
@@ -22,7 +23,7 @@ class LogReader:
         """Close the log reader"""
         self.file.close()
 
-    def read_line(self):
+    def read_line(self) -> Optional[str]:
         """Read the next line, return string with it or None for end-of-file"""
         while True:
             index = self.buffer.find("\n", self.offset)
@@ -47,7 +48,9 @@ class LogReader:
             # Reset unread offset to beginning of buffer
             self.offset = 0
 
-    def read_record_header(self):
+    def read_record_header(
+        self,
+    ) -> Union[Tuple[RecordHeader, str], Tuple[RecordHeader, None], Tuple[None, None]]:
         """Read the next record header and rest of its string
 
         Return (RecordHeader, str) when there are args after the header,

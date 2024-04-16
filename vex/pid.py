@@ -1,6 +1,8 @@
+from typing import *  # type: ignore
 from collections import namedtuple
 
 from log import *
+
 
 Gains = namedtuple(
     "Gains",

@@ -77,7 +77,7 @@ def close_log():
         sys.stdout.buffer.write(b"close_log()" + NEWLINE_FOR_STDOUT)
 
 
-def log_record(record: Record) -> None:
+def log_record(record: Record):
     """Save the telemetry record to the record list and the record file"""
 
     if not _log_writer:

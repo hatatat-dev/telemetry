@@ -30,7 +30,7 @@ ControllerState = namedtuple(
 """State of a controller"""
 
 
-def ControllerState_from_args(args):
+def ControllerState_from_args(args: Tuple[float, ...]):
     """Create ControllerState from float args"""
     return ControllerState(
         *map_args(
@@ -102,7 +102,7 @@ InertialState = namedtuple(
 """State of an inertial sensor"""
 
 
-def InertialState_from_args(args):
+def InertialState_from_args(args: Tuple[float, ...]):
     """Create InertialState from float args"""
     return InertialState(
         *map_args(
@@ -175,7 +175,7 @@ GpsState = namedtuple(
 """State of Gps"""
 
 
-def GpsState_from_args(args):
+def GpsState_from_args(args: Tuple[float, ...]):
     """Create GpsState from float args"""
     return GpsState(
         *map_args(
@@ -251,7 +251,7 @@ MotorState = namedtuple(
 """State of a motor"""
 
 
-def MotorState_from_args(args):
+def MotorState_from_args(args: Tuple[float, ...]):
     """Create MotorState from float args"""
     return MotorState(
         *map_args(

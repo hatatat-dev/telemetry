@@ -53,8 +53,13 @@ parser.add_argument(
 parser.add_argument("--no-executable", dest="executable", action="store_false")
 parser.add_argument(
     "--external",
-    default="vex,cte,typing",
+    default="vex,cte",
     help="comma-separated list of external modules to keep imported as-is",
+)
+parser.add_argument(
+    "--skip",
+    default="typing",
+    help="comma-separated list of modules to skip",
 )
 parser.add_argument(
     "--vexcom",
@@ -72,7 +77,7 @@ parser.add_argument(
 parser.add_argument("program", type=Path)
 
 
-def load_file(path: Path, external_modules: Set[str]) -> str:
+def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) -> str:
     """Load a Python file, inlining content for `from <module> import *` statements"""
 
     imported_modules = set()
@@ -89,13 +94,17 @@ def load_file(path: Path, external_modules: Set[str]) -> str:
                 + re.sub(
                     r"^[ \t]*from[ \t]+(\w+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
                     lambda m: (
-                        (
-                            f"# begin inline `{m[0]}`\n\n"
-                            + inner(path.parent / f"{m[1]}.py")
-                            + f"\n# end inline `{m[0]}`"
+                        m[0]
+                        if m[1] in external_modules
+                        else (
+                            f"# skip `{m[0]}`"
+                            if m[1] in skip_modules
+                            else (
+                                f"# begin inline `{m[0]}`\n\n"
+                                + inner(path.parent / f"{m[1]}.py")
+                                + f"\n# end inline `{m[0]}`"
+                            )
                         )
-                        if m[1] not in external_modules
-                        else m[0]
                     ),
                     file.read(),
                     flags=re.MULTILINE,
@@ -173,7 +182,12 @@ if not args.overwrite and args.preprocessed.exists():
             )
 
 # Load program, inlining `from <module> import *` statements
-content = load_file(args.program, set(filter(None, args.external.split(","))))
+content = load_file(
+    args.program,
+    set(filter(None, args.external.split(","))),
+    set(filter(None, args.skip.split(","))),
+)
+
 
 if args.sign:
     # Add signature line at the top
@@ -193,7 +207,9 @@ if args.read_only:
 
 if args.executable:
     # Add executable permissions to the file
-    args.preprocessed.chmod(args.preprocessed.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    args.preprocessed.chmod(
+        args.preprocessed.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
 
 
 if args.write:

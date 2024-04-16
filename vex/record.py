@@ -1,3 +1,4 @@
+from typing import *  # type: ignore
 from collections import namedtuple
 
 from device import *
@@ -51,7 +52,9 @@ CSV_HEADER_FOR_STDOUT = bytearray(CSV_HEADER)
 format_newline_for_stdout(CSV_HEADER_FOR_STDOUT)
 
 
-def parse_record_header(line: str, line_number: int):
+def parse_record_header(
+    line: str, line_number: int
+) -> Tuple[RecordHeader, Optional[str]]:
     """Parse the line into a record header and the rest of the line
 
     Return (RecordHeader, str) when there are args after the header,
@@ -200,7 +203,7 @@ def append_record(buffer: bytearray, record: Record):
     buffer.append(10)
 
 
-def parse_record_args(rest, line_number: int):
+def parse_record_args(rest, line_number: int) -> Tuple[float, ...]:
     """Parse rest of the line after record header into tuple of float args"""
     if rest is None:
         return ()
