@@ -12,23 +12,6 @@ controller.buttonLeft.pressed(lambda: run_steps(get_steps_turn_left()))
 controller.buttonRight.pressed(lambda: run_steps(get_steps_turn_right()))
 
 
-def calibrate():
-    """Calibrate both inertial and GPS sensors"""
-    inertial.calibrate()
-    gps.calibrate()
-
-    while inertial.is_calibrating():
-        wait(100, MSEC)
-
-    while gps.is_calibrating():
-        wait(100, MSEC)
-
-    inertial.set_heading(gps.heading())
-
-    _ = inertial.get_state()
-    _ = gps.get_state()
-
-
 def turn_to_zero():
     """Turn to zero heading"""
     before = inertial.get_state()
@@ -40,10 +23,10 @@ def turn_to_zero():
     _ = gps.get_state()
 
 
-controller.buttonA.pressed(calibrate)
+controller.buttonA.pressed(calibrate_inertial_and_gps)
 
 controller.buttonB.pressed(turn_to_zero)
 
 controller.buttonX.pressed(close_log)
 
-calibrate()
+calibrate_inertial_and_gps()

@@ -202,3 +202,20 @@ def pid_turn(angle: float):
 
         # Wait until the next PID controller iteration
         sleep(TURN_SLEEP_MS, TimeUnits.MSEC)
+
+
+def calibrate_inertial_and_gps():
+    """Calibrate both inertial and GPS sensors"""
+    _ = inertial.get_state()
+    inertial.calibrate()
+    while inertial.is_calibrating():
+        wait(100, MSEC)
+    _ = inertial.get_state()
+
+    _ = gps.get_state()
+    gps.calibrate()
+    while gps.is_calibrating():
+        wait(100, MSEC)
+    _ = gps.get_state()
+
+    inertial.set_heading(gps.heading())
