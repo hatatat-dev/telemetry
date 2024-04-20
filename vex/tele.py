@@ -152,7 +152,7 @@ class TeleInertial(Inertial):
         self.name = name
         self.tag = tag
 
-        for method in [
+        for method_name in [
             "set_heading",
             "reset_heading",
             "set_rotation",
@@ -160,10 +160,14 @@ class TeleInertial(Inertial):
             "calibrate",
             "set_turn_type",
         ]:
+            method = getattr(self, method_name)
+
+            setattr(self, "no_log_" + method_name, method)
+
             setattr(
                 self,
-                method,
-                wrap_method_with_log(self, method, tag, getattr(self, method)),
+                method_name,
+                wrap_method_with_log(self, method_name, tag, method),
             )
 
     def collision(self, callback: Callable[..., None], arg: tuple = ()):

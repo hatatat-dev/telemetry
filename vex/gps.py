@@ -1,9 +1,9 @@
-from math import sin, cos, pi
+import math
 
-GPS_RADIUS = 1800
+GPS_HALF_FIELD_SIZE = 1800
 
 
-def distance_forward(
+def compute_distance_forward(
     heading: float, x_position: float, y_position: float, width: float = 0
 ) -> float:
     heading = heading % 360
@@ -18,28 +18,36 @@ def distance_forward(
         heading -= 90
         x_position, y_position = -y_position, x_position
 
-    heading_sin = sin(heading * pi / 180)
-    heading_cos = cos(heading * pi / 180)
+    heading_radians = heading * math.pi / 180
+
+    heading_sin = math.sin(heading_radians)
+    heading_cos = math.cos(heading_radians)
 
     left_x = x_position - heading_cos * width
-    left_y = y_position - heading_sin * width
+    left_y = y_position + heading_sin * width
 
     right_x = x_position + heading_cos * width
-    right_y = y_position + heading_sin * width
+    right_y = y_position - heading_sin * width
 
     if (
-        left_x >= GPS_RADIUS
-        or left_y >= GPS_RADIUS
-        or right_x >= GPS_RADIUS
-        or right_y >= GPS_RADIUS
+        left_x >= GPS_HALF_FIELD_SIZE
+        or left_y >= GPS_HALF_FIELD_SIZE
+        or right_x >= GPS_HALF_FIELD_SIZE
+        or right_y >= GPS_HALF_FIELD_SIZE
     ):
         return 0.0
 
-    # TODO: calculate distance to the boundary
-    return 0.0
+    return min(
+        (GPS_HALF_FIELD_SIZE - left_x) / max(heading_sin, 0.01),
+        (GPS_HALF_FIELD_SIZE - left_y) / max(heading_cos, 0.01),
+        (GPS_HALF_FIELD_SIZE - right_x) / max(heading_sin, 0.01),
+        (GPS_HALF_FIELD_SIZE - right_x) / max(heading_cos, 0.01),
+    )
 
 
-def distance_reverse(
+def compute_distance_reverse(
     heading: float, x_position: float, y_position: float, width: float = 0
 ) -> float:
-    return distance_forward((heading + 180) % 360, x_position, y_position, width)
+    return compute_distance_forward(
+        (heading + 180) % 360, x_position, y_position, width
+    )
