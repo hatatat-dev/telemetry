@@ -112,15 +112,15 @@ def InertialState_from_args(args: Tuple[float, ...]):
                 None,  # arg_2
                 None,  # arg_3
                 bool,  # arg_4
-                AxisType_values,  # arg_5
-                AxisType_values,  # arg_6
-                AxisType_values,  # arg_7
-                OrientationType_values,  # arg_8
-                OrientationType_values,  # arg_9
-                OrientationType_values,  # arg_10
-                OrientationType_values,  # arg_11
-                OrientationType_values,  # arg_12
-                OrientationType_values,  # arg_13
+                None,  # arg_5
+                None,  # arg_6
+                None,  # arg_7
+                None,  # arg_8
+                None,  # arg_9
+                None,  # arg_10
+                None,  # arg_11
+                None,  # arg_12
+                None,  # arg_13
                 TurnType_values,  # arg_14
             ),
             args,
@@ -188,15 +188,15 @@ def GpsState_from_args(args: Tuple[float, ...]):
                 None,  # arg_5
                 None,  # arg_6
                 bool,  # arg_7
-                AxisType_values,  # arg_8
-                AxisType_values,  # arg_9
-                AxisType_values,  # arg_10
-                OrientationType_values,  # arg_11
-                OrientationType_values,  # arg_12
-                OrientationType_values,  # arg_13
-                OrientationType_values,  # arg_14
-                OrientationType_values,  # arg_15
-                OrientationType_values,  # arg_16
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
+                None,  # None
                 TurnType_values,  # arg_17
             ),
             args,

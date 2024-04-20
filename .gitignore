@@ -3,3 +3,5 @@
 /.vscode/settings.json
 vex/preprocessed.py
 vex/__pycache__
+shared/preprocessed.py
+shared/__pycache__

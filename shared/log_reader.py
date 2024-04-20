@@ -50,6 +50,9 @@ class LogReader:
 
     def read_record_header(
         self,
+        cls: Optional[str] = None,
+        name: Optional[str] = None,
+        method: Optional[str] = None,
     ) -> Union[Tuple[RecordHeader, str], Tuple[RecordHeader, None], Tuple[None, None]]:
         """Read the next record header and rest of its string
 
@@ -72,6 +75,18 @@ class LogReader:
                 # Skip header line(s)
                 continue
 
-            break
+            header, rest = parse_record_header(line, self.line_number)
 
-        return parse_record_header(line, self.line_number)
+            if cls is not None and header.cls != cls:
+                # No cls match, skip
+                continue
+
+            if name is not None and header.name != name:
+                # No name match, skip
+                continue
+
+            if method is not None and header.method != method:
+                # No method match, skip
+                continue
+
+            return header, rest # type: ignore # type

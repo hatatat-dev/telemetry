@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-import vex.vex as vex
+import shared.vex as vex
 
 print("from vex import *")
 

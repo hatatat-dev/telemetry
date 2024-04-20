@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--preprocessed",
     type=Path,
-    default="vex/preprocessed.py",
+    default="shared/preprocessed.py",
     help="name of the preprocessed file",
 )
 parser.add_argument(
