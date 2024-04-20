@@ -23,8 +23,8 @@ def compute_distance_forward(
     heading_sin = math.sin(heading_radians)
     heading_cos = math.cos(heading_radians)
 
-    left_x = x_position - heading_cos * width
-    left_y = y_position + heading_sin * width
+    left_x = x_position - heading_cos * width / 2
+    left_y = y_position + heading_sin * width / 2
 
     right_x = x_position + heading_cos * width
     right_y = y_position - heading_sin * width

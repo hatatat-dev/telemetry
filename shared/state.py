@@ -1,4 +1,5 @@
 from collections import namedtuple
+import math
 
 from vex import *
 
@@ -149,6 +150,12 @@ def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
     )
 
 
+def compute_inertial_angle(
+    inertial_from: InertialState, inertial_to: InertialState
+) -> float:
+    return (inertial_to.heading - inertial_from.heading + 180) % 360 - 180
+
+
 GpsState = namedtuple(
     "GpsState",
     [
@@ -226,6 +233,17 @@ def get_gps_state_no_record(gps: Gps) -> GpsState:
         gps.acceleration(AxisType.ZAXIS),  # arg_16
         gps.get_turn_type(),  # arg_17
     )
+
+
+def compute_gps_distance(gps_from: GpsState, gps_to: GpsState) -> float:
+    return math.sqrt(
+        (gps_to.x_position - gps_from.x_position) ** 2
+        + (gps_to.y_position - gps_from.y_position) ** 2
+    )
+
+
+def compute_gps_angle(gps_from: GpsState, gps_to: GpsState) -> float:
+    return (gps_to.heading - gps_from.heading + 180) % 360 - 180
 
 
 MotorState = namedtuple(

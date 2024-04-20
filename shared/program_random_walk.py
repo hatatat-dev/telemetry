@@ -22,11 +22,15 @@ controller.buttonX.pressed(lambda: set_done(True))
 
 inertial.collision(lambda: log_method_call(inertial, "collision", ""))
 
-COOLDOWN_MS = 500
+COOLDOWN_MS = 2000
 
-INTERVAL_MS = 500
+FINAL_MS = 2000
 
-DISTANCE_BUFFER = 100
+INTERVAL_MS = 1000
+
+DISTANCE_BUFFER = 10 * 25
+
+WIDTH_FOR_DISTANCE = 18 * 25
 
 sample = 0
 
@@ -41,10 +45,16 @@ while not done:
     inertial_before = inertial.get_state(tag)
 
     distance_limit_forward = compute_distance_forward(
-        gps_before.heading, gps_before.x_position, gps_before.y_position
+        gps_before.heading,
+        gps_before.x_position,
+        gps_before.y_position,
+        WIDTH_FOR_DISTANCE,
     )
     distance_limit_reverse = compute_distance_reverse(
-        gps_before.heading, gps_before.x_position, gps_before.y_position
+        gps_before.heading,
+        gps_before.x_position,
+        gps_before.y_position,
+        WIDTH_FOR_DISTANCE,
     )
 
     volts = random.randrange(1, int(MAX_MOTOR_VOLTS * 10)) / 10.0
@@ -99,6 +109,11 @@ while not done:
     _gps_after = gps.get_state(tag)
 
     sleep(COOLDOWN_MS)
+
+    _inertial_after = inertial.get_state(tag)
+    _gps_after = gps.get_state(tag)
+
+    sleep(FINAL_MS)
 
     _inertial_cooldown = inertial.get_state(tag)
     _gps_cooldown = gps.get_state(tag)

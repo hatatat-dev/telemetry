@@ -13,6 +13,7 @@ RandomWalkSample = namedtuple(
         "gps_start_x_position",
         "gps_start_y_position",
         "inertial_start_heading",
+        "inertial_start_rotation",
         "distance_limit_forward",
         "distance_limit_reverse",
         "distance_estimate",
@@ -24,11 +25,29 @@ RandomWalkSample = namedtuple(
         "gps_stop_x_position",
         "gps_stop_y_position",
         "inertial_stop_heading",
+        "inertial_stop_rotation",
         "gps_cooldown_heading",
         "gps_cooldown_x_position",
         "gps_cooldown_y_position",
         "inertial_cooldown_heading",
-        "gps_distance",
+        "inertial_cooldown_rotation",
+        "gps_final_heading",
+        "gps_final_x_position",
+        "gps_final_y_position",
+        "inertial_final_heading",
+        "inertial_final_rotation",
+        "gps_stop_angle",
+        "gps_cooldown_angle",
+        "gps_final_angle",
+        "inertial_stop_angle",
+        "inertial_cooldown_angle",
+        "inertial_final_angle",
+        "inertial_stop_travel",
+        "inertial_cooldown_travel",
+        "inertial_final_travel",
+        "gps_stop_distance",
+        "gps_cooldown_distance",
+        "gps_final_distance",
     ],
 )
 """Random walk sample"""
@@ -174,16 +193,39 @@ def read_random_walk_sample(log_reader: LogReader) -> Optional[RandomWalkSample]
             parse_record_args(rest, log_reader.line_number)
         )
 
-        gps_distance = (
-            math.floor(
-                math.sqrt(
-                    (gps_cooldown.x_position - gps_start.x_position) ** 2
-                    + (gps_cooldown.y_position - gps_start.y_position) ** 2
-                )
-                * 10000
+        header, rest = log_reader.read_record_header("Inertial", "inertial", "state")
+        if not header:
+            return None
+
+        if header.tag != sample_tag:
+            raise Exception(
+                "expected tag "
+                + sample_tag
+                + " actual "
+                + header.tag
+                + " on line "
+                + str(log_reader.line_number)
             )
-            / 10000
+
+        inertial_final = InertialState_from_args(
+            parse_record_args(rest, log_reader.line_number)
         )
+
+        header, rest = log_reader.read_record_header("Gps", "gps", "state")
+        if not header:
+            return None
+
+        if header.tag != sample_tag:
+            raise Exception(
+                "expected tag "
+                + sample_tag
+                + " actual "
+                + header.tag
+                + " on line "
+                + str(log_reader.line_number)
+            )
+
+        gps_final = GpsState_from_args(parse_record_args(rest, log_reader.line_number))
 
         return RandomWalkSample(
             sample,
@@ -191,6 +233,7 @@ def read_random_walk_sample(log_reader: LogReader) -> Optional[RandomWalkSample]
             gps_start.x_position,
             gps_start.y_position,
             inertial_start.heading,
+            inertial_start.rotation,
             start_args[0],
             start_args[1],
             start_args[2],
@@ -202,9 +245,27 @@ def read_random_walk_sample(log_reader: LogReader) -> Optional[RandomWalkSample]
             gps_stop.x_position,
             gps_stop.y_position,
             inertial_stop.heading,
+            inertial_stop.rotation,
             gps_cooldown.heading,
             gps_cooldown.x_position,
             gps_cooldown.y_position,
             inertial_cooldown.heading,
-            gps_distance,
+            inertial_cooldown.rotation,
+            gps_final.heading,
+            gps_final.x_position,
+            gps_final.y_position,
+            inertial_final.heading,
+            inertial_final.rotation,
+            round(compute_gps_angle(gps_start, gps_stop), 4),
+            round(compute_gps_angle(gps_start, gps_cooldown), 4),
+            round(compute_gps_angle(gps_start, gps_final), 4),
+            round(compute_inertial_angle(inertial_start, inertial_stop), 4),
+            round(compute_inertial_angle(inertial_start, inertial_cooldown), 4),
+            round(compute_inertial_angle(inertial_start, inertial_final), 4),
+            round(inertial_stop.rotation - inertial_start.rotation, 4),
+            round(inertial_cooldown.rotation - inertial_start.rotation, 4),
+            round(inertial_final.rotation - inertial_start.rotation, 4),
+            round(compute_gps_distance(gps_start, gps_stop), 4),
+            round(compute_gps_distance(gps_start, gps_cooldown), 4),
+            round(compute_gps_distance(gps_start, gps_final), 4),
         )
