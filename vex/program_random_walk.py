@@ -20,6 +20,8 @@ def set_done(value: bool):
 
 controller.buttonX.pressed(lambda: set_done(True))
 
+inertial.collision(lambda: log_method_call(inertial, "collision", ""))
+
 COOLDOWN_MS = 500
 
 INTERVAL_MS = 500
@@ -32,7 +34,6 @@ while not done:
     if sample % 10 == 0:
         calibrate_inertial_and_gps()
 
-    sample += 1
     tag = "s" + str(sample)
 
     gps_before = gps.get_state(tag)
@@ -65,8 +66,8 @@ while not done:
 
     log_method_call(
         ("RandomWalk", "random_walk"),
-        "sample",
         "start",
+        tag,
         distance_limit_forward,
         distance_limit_reverse,
         distance_estimate,
@@ -85,8 +86,8 @@ while not done:
 
     log_method_call(
         ("RandomWalk", "random_walk"),
-        "sample",
         "stop",
+        tag,
     )
 
     motor_lf.no_log_stop()  # type: ignore
@@ -103,5 +104,7 @@ while not done:
     _gps_cooldown = gps.get_state(tag)
 
     sleep(INTERVAL_MS)
+
+    sample += 1
 
 close_log()
