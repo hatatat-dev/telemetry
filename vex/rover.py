@@ -2,47 +2,14 @@ from tele import *
 from brain import *
 from log import *
 from pid import *
-
-# Red cartridge: GearSetting.RATIO_36_1, 100 RPM
-# Green cartridge: GearSetting.RATIO_18_1, 200 RPM
-# Blue cartridge: GearSetting.RATIO_6_1, 600 RPM
-
-MOTOR_DIRECTION = False
-
-controller = TeleController(PRIMARY)
-inertial = TeleInertial(Ports.PORT5)
-
-motor_lf = TeleMotor(
-    Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
-)
-motor_lb = TeleMotor(
-    Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
-)
-
-motor_rf = TeleMotor(
-    Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
-)
-motor_rb = TeleMotor(
-    Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
-)
-
-motors = {
-    "motor_lf": motor_lf,
-    "motor_lb": motor_lb,
-    "motor_rf": motor_rf,
-    "motor_rb": motor_rb,
-}
-
-gps = TeleGps(Ports.PORT6, name="gps")
+from drivetrain import *
 
 
 def get_volts_for_axis_value(value: int) -> float:
     return 11.0 * value / 127
 
 
-def control_motors_by_axis(
-    axis_name: str, motor_front: TeleMotor, motor_back: TeleMotor
-):
+def control_motors_by_axis(axis_name: str, *motors: TeleMotor):
     """Control front and back motors by the given axis like axis3 or axis2"""
 
     axis = getattr(controller, axis_name)
@@ -56,8 +23,9 @@ def control_motors_by_axis(
 
         log_method_call(controller, method, "", value, volts)
 
-        motor_front.spin_volts(FORWARD, volts)
-        motor_back.spin_volts(FORWARD, volts)
+        for motor in motors:
+            motor.spin_volts(FORWARD, volts)
+            motor.spin_volts(FORWARD, volts)
 
     axis.changed(axis_changed)
 
@@ -202,20 +170,3 @@ def pid_turn(angle: float):
 
         # Wait until the next PID controller iteration
         sleep(TURN_SLEEP_MS, TimeUnits.MSEC)
-
-
-def calibrate_inertial_and_gps():
-    """Calibrate both inertial and GPS sensors"""
-    _ = inertial.get_state()
-    inertial.calibrate()
-    while inertial.is_calibrating():
-        wait(100, MSEC)
-    _ = inertial.get_state()
-
-    _ = gps.get_state()
-    gps.calibrate()
-    while gps.is_calibrating():
-        wait(100, MSEC)
-    _ = gps.get_state()
-
-    inertial.set_heading(gps.heading())
