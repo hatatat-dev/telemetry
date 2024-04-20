@@ -3,10 +3,12 @@ from brain import *
 from log import *
 from pid import *
 from drivetrain import *
-
+from motor import *
 
 def get_volts_for_axis_value(value: int) -> float:
-    return 11.0 * value / 127
+    return MAX_MOTOR_VOLTS * value / 127
+
+MOTOR_FLOOR_VOLTS=1
 
 
 def control_motors_by_axis(axis_name: str, *motors: TeleMotor):
@@ -20,6 +22,11 @@ def control_motors_by_axis(axis_name: str, *motors: TeleMotor):
 
         value = axis.value()
         volts = get_volts_for_axis_value(value)
+
+        if volts < 0:
+            volts -= MOTOR_FLOOR_VOLTS
+        elif volts > 0:
+            volts += MOTOR_FLOOR_VOLTS
 
         log_method_call(controller, method, "", value, volts)
 

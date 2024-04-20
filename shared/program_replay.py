@@ -29,7 +29,7 @@ targets = {
 for motor in targets.get("Motor", {}).values():
     _ = get_motor_state(motor)
 
-log_reader = LogReader("gps.csv")
+log_reader = LogReader("rover.csv")
 
 while True:
     header, rest = log_reader.read_record_header()
