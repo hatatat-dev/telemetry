@@ -5,10 +5,12 @@ from pid import *
 from drivetrain import *
 from motor import *
 
+
 def get_volts_for_axis_value(value: int) -> float:
     return MAX_MOTOR_VOLTS * value / 127
 
-MOTOR_FLOOR_VOLTS=1
+
+MOTOR_FLOOR_VOLTS = 1
 
 
 def control_motors_by_axis(axis_name: str, *motors: TeleMotor):
@@ -120,7 +122,7 @@ def get_steps_turn_right():
     ]
 
 
-TURN_GAINS = Gains(0.1, 0.001, 0.1)
+TURN_GAINS = Gains(0.1, 0, -0.01)
 """Gain factors for turn PID"""
 
 # Turn is done when voltage AND angle are below thresholds
@@ -133,7 +135,7 @@ TURN_ANGLE_THRESHOLD = 5.0
 TURN_SLEEP_MS = 20
 """Interval between turn PID iterations"""
 
-TURN_VOLTAGE_OFFSET = 0
+TURN_VOLTAGE_OFFSET = 0.5
 """Add that much voltage to the spin"""
 
 

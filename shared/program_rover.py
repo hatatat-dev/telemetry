@@ -1,30 +1,12 @@
 #!/usr/bin/env python3
 
+import math
+
 from log import *
 
 open_log("rover.csv")
 
 from rover import *
-
-GREEN_TRIBALL_SIG = Signature(0, -4805, -3921, -4363, -5601, -4643, -5122, 7381610, 0)
-
-RED_TRIBALL_SIG = Signature(
-    1,
-    8191,
-    9095,
-    8643,
-    -1153,
-    -439,
-    -796,
-    11294286,
-    0,
-)
-
-vision = Vision(Ports.PORT7, 50, GREEN_TRIBALL_SIG, RED_TRIBALL_SIG)
-
-def handle_vision():
-    vision.take_snapshot(GREEN_TRIBALL_SIG,)
-    pass
 
 controller.buttonUp.pressed(lambda: run_steps(get_steps_forward()))
 controller.buttonDown.pressed(lambda: run_steps(get_steps_backward()))
@@ -43,12 +25,26 @@ def turn_to_zero():
     _ = gps.get_state()
 
 
+def turn_to_center():
+    """Turn to face the center of the field"""
+    gps_before = gps.get_state()
+
+    direction = (
+        math.atan2(gps_before.x_position, gps_before.y_position) * 180 / math.pi + 180
+    ) % 360
+    angle = direction - gps_before.heading
+
+    pid_turn(angle)
+
+    _ = inertial.get_state()
+
+
 controller.buttonA.pressed(calibrate_inertial_and_gps)
 
 controller.buttonB.pressed(turn_to_zero)
 
-controller.buttonX.pressed(close_log)
+controller.buttonY.pressed(turn_to_center)
 
-controller.buttonY.pressed(handle_vision)
+controller.buttonX.pressed(close_log)
 
 calibrate_inertial_and_gps()
