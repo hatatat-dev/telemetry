@@ -122,7 +122,7 @@ def get_steps_turn_right():
     ]
 
 
-TURN_GAINS = Gains(0.1, 0, -0.01)
+TURN_GAINS = Gains(0.1, 0, 0.01)
 """Gain factors for turn PID"""
 
 # Turn is done when voltage AND angle are below thresholds
