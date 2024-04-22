@@ -51,4 +51,4 @@ def calibrate_inertial_and_gps():
         wait(100, MSEC)
     _ = gps.get_state()
 
-    # inertial.set_heading(gps.heading())
+    inertial.set_heading(gps.heading())
