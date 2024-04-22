@@ -3,6 +3,7 @@
 from tele import *
 from brain import *
 from log import *
+from inertial import *
 
 open_log("simple.csv")
 

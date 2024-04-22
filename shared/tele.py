@@ -22,23 +22,6 @@ def get_controller_state(controller: Controller, tag: str = "") -> ControllerSta
     return state
 
 
-def get_inertial_state(inertial: Inertial, tag: str = "") -> InertialState:
-    """Get inertial sensor state and save the telemetry record for that"""
-
-    timestamp = get_timestamp()
-    state = get_inertial_state_no_record(inertial)
-
-    log_record(
-        Record(
-            create_record_header(
-                timestamp, get_current_thread(), inertial, "state", tag
-            ),
-            state,
-        )
-    )
-
-    return state
-
 
 def get_gps_state(gps: Gps, tag: str = "") -> GpsState:
     """Get Gps sensor state and save the telemetry record for that"""
@@ -142,43 +125,6 @@ class TeleController(Controller):
     def get_state(self, tag: str = ""):
         """Get state and save telemetry record for that"""
         return get_controller_state(self, tag)
-
-
-class TeleInertial(Inertial):
-    """Inertial with a default name"""
-
-    def __init__(self, *args, name: str = "inertial", tag: str = "", **kwargs):
-        super().__init__(*args, **kwargs)
-        self.name = name
-        self.tag = tag
-
-        for method_name in [
-            "set_heading",
-            "reset_heading",
-            "set_rotation",
-            "reset_rotation",
-            "calibrate",
-            "set_turn_type",
-        ]:
-            method = getattr(self, method_name)
-
-            setattr(self, "no_log_" + method_name, method)
-
-            setattr(
-                self,
-                method_name,
-                wrap_method_with_log(self, method_name, tag, method),
-            )
-
-    def collision(self, callback: Callable[..., None], arg: tuple = ()):
-        return super().collision(
-            wrap_callback_with_log,
-            (self, "collision", self.tag, callback) + arg,
-        )
-
-    def get_state(self, tag: str = ""):
-        """Get state and save telemetry record for that"""
-        return get_inertial_state(self, tag)
 
 
 class TeleGps(Gps):

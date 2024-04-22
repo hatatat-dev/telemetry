@@ -1,5 +1,6 @@
 from tele import *
 from brain import *
+from inertial import *
 
 # Red cartridge: GearSetting.RATIO_36_1, 100 RPM
 # Green cartridge: GearSetting.RATIO_18_1, 200 RPM
@@ -7,8 +8,10 @@ from brain import *
 
 MOTOR_DIRECTION = False
 
+INERTIAL_ROTATION_SCALE = 1.0135
+
 controller = TeleController(PRIMARY)
-inertial = TeleInertial(Ports.PORT5)
+inertial = TeleInertial(Ports.PORT5, rotation_scale=INERTIAL_ROTATION_SCALE)
 
 motor_lf = TeleMotor(
     Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
@@ -48,4 +51,4 @@ def calibrate_inertial_and_gps():
         wait(100, MSEC)
     _ = gps.get_state()
 
-    inertial.set_heading(gps.heading())
+    # inertial.set_heading(gps.heading())
