@@ -19,6 +19,48 @@ We did not advance further to the [World Championship 2024](https://recf.org/vex
 
 This [telemetry GitHub repository](https://github.com/hatatat-dev/telemetry) is where we try making these changes, and more.
 
+# preprocessed.py
+VEX expects the entire Python program for the robot to be in a single Python file, such as [main.py](https://github.com/abpa123/newrobot/blob/main/src/main.py) we used for Over Under season. As the program got more complex, that file grew longer, and became difficult to read and update. Also, robot often needs different strategies for autonomous, and that requires either making and reverting changes in that single file, or creating a copy, but then common changes need to be done multiple times, in each copy.
+
+Maintenance of a growing program is a common task, and Python programming language supports breaking it into [modules](https://docs.python.org/3/tutorial/modules.html) that implement some logic once, and then can be imported into the main program with a single statement like
+```
+from vex import *
+```
+telling Python interpreter to find a module named vex, likely a file named `vex.py`, run the code from there, and then make all entities available in the current program.
+
+With a full Python interpreter, it would be possible to similarly create separate files, like `pid.py` with custom [PID controller](https://en.wikipedia.org/wiki/Proportional%E2%80%93integral%E2%80%93derivative_controller) code, and then make it available to the main program by importing that module with
+```
+from pid import *
+```
+
+That would help to keep the main file shorter, easier to read and update, and also allow creating multiple program files, each only containing the unique logic, and importing the common logic from the same module files, without the need to keep multiple copies.
+
+The challenge here, as mentioned above, is that the [VS Code extension](https://www.vexrobotics.com/vexcode/vscode-extension) only knows to copy a single file to the robot, so any additional files with separate models, like the `pid.py` with pid, will be left behind on the computer, and Python interpreter running on the robot will fail to import them.
+
+One way to resolve that challenge is to use a microSD card: copy the `pid.py` onto one, insert it into robot's microSD card slot, and then have Python interpreter read it from there. That is not very convenient, as any changes to these shared modules now need to be copied to the robot manually, moving microSD card between computer and robot.
+
+We decided to avoid use of microSD card, and instead "preprocess" the program on the computer before it is built and downloaded to the robot by VS Code extension. To do so, we wrote another Python program [preproces.py](https://github.com/hatatat-dev/telemetry/blob/main/preprocess.py) that
+* takes the program filename, such as [shared/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_manual.py),
+* parses it line-by-line, looking for `from <module> import *` statements,
+* determines the filenames corresponding to the module names,
+* substitutes the full content of the files for the import statements,
+* writes the full "preprocessed" file into a separate program in shared/preprocessed.py
+
+To use it, we have a zsh / bash terminal open in VS Code, where we first run something like
+```
+./preprocess.py shared/program_manual.py
+```
+that updates the shared/preprocessed.py file. It should be possible to run it on Windows, too, but we haven't tried that yet.
+
+That file is listed as the main Python program in [vex_project_settings.json](https://github.com/hatatat-dev/telemetry/blob/main/.vscode/vex_project_settings.json), so once generated, it can be built and downloaded to the robot, and run there, as a single file.
+
+This approach has some inconveniences:
+* the required preprocessing step before the deployment, one can forget to run it and then don't realize the robot is still running the earlier version,
+* even though the input programs have different names, like [shared/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_manual.py) or [shared/program_simple.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_simple.py), the preprocessed program is always called the same, including on the robot, which causes confusion,
+* the same code is copied from the original modules to that preprocessed.py file, and someone may accidentally be making changes to the preprocessed.py file instead of the original, in which case they will be overwritten (discarded) the next time they run the preprocessing.
+
+To avoid or at least recognize the accidental changes to the preprocessed.py file, the preprocessing tool marks that file as read-only. Also it adds a hexadecimal signature for the content of the file at the very top, so that it knows when there have been any manual changes, and refuses to overwrite them, unless explicitly requested.
+
 # GPS Field Setup
 [GPS Sensor](https://www.vexrobotics.com/276-7405.html) works by tracking black-and-white patterns on the perimeter of the field, installed following [the instructions](https://kb.vex.com/hc/en-us/articles/4402678201620-Mounting-the-GPS-Field-Code-Strips). The diagram below shows `(x_position, y_position), heading°` GPS readings for the four sides of the field in our garage:
 
