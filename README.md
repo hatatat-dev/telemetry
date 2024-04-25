@@ -1,4 +1,4 @@
-# SystemError Uses Python
+# SystemError uses Python
 SystemError is the name of [a team from Silicon Valley](https://www.robotevents.com/teams/VRC/21919A) competing at [VEX Robotics Competitions](https://www.vexrobotics.com/v5/competition/vrc-current-game). Besides designing and building a robot like the [Hero Bots](https://www.vexrobotics.com/v5/downloads/build-instructions#vexv5) from VEX, the team needs to program it for both manual control by a human driver with a [joystick](https://www.vexrobotics.com/276-4820.html), and for autonomous driving by the program alone.
 
 The robot can be programmed in a variety of ways:
@@ -19,7 +19,7 @@ We did not advance further to the [World Championship 2024](https://recf.org/vex
 
 This [telemetry GitHub repository](https://github.com/hatatat-dev/telemetry) is where we try making these changes, and more.
 
-# preprocessed.py
+# Python modules with preprocessed.py
 VEX expects the entire Python program for the robot to be in a single Python file, such as [main.py](https://github.com/abpa123/newrobot/blob/main/src/main.py) we used for Over Under season. As the program got more complex, that file grew longer, and became difficult to read and update. Also, robot often needs different strategies for autonomous, and that requires either making and reverting changes in that single file, or creating a copy, but then common changes need to be done multiple times, in each copy.
 
 Maintenance of a growing program is a common task, and Python programming language supports breaking it into [modules](https://docs.python.org/3/tutorial/modules.html) that implement some logic once, and then can be imported into the main program with a single statement like
@@ -35,7 +35,7 @@ from pid import *
 
 That would help to keep the main file shorter, easier to read and update, and also allow creating multiple program files, each only containing the unique logic, and importing the common logic from the same module files, without the need to keep multiple copies.
 
-The challenge here, as mentioned above, is that the [VS Code extension](https://www.vexrobotics.com/vexcode/vscode-extension) only knows to copy a single file to the robot, so any additional files with separate models, like the `pid.py` with pid, will be left behind on the computer, and Python interpreter running on the robot will fail to import them.
+The challenge here, as mentioned above, is that the [VS Code extension](https://www.vexrobotics.com/vexcode/vscode-extension) only knows to copy a single file to the robot, so any additional files with separate models, like the `pid.py` with pid module, will be left behind on the computer, and Python interpreter running on the robot will fail to import them.
 
 One way to resolve that challenge is to use a microSD card: copy the `pid.py` onto one, insert it into robot's microSD card slot, and then have Python interpreter read it from there. That is not very convenient, as any changes to these shared modules now need to be copied to the robot manually, moving microSD card between computer and robot.
 
@@ -60,6 +60,50 @@ This approach has some inconveniences:
 * the same code is copied from the original modules to that preprocessed.py file, and someone may accidentally be making changes to the preprocessed.py file instead of the original, in which case they will be overwritten (discarded) the next time they run the preprocessing.
 
 To avoid or at least recognize the accidental changes to the preprocessed.py file, the preprocessing tool marks that file as read-only. Also it adds a hexadecimal signature for the content of the file at the very top, so that it knows when there have been any manual changes, and refuses to overwrite them, unless explicitly requested.
+
+# Logging records to a CSV file
+Part of robotics competition is developing a program that makes robot perform some tasks, including driving and moving objects, autonomously, without being controlled by a human driver. In the Over Under season, our program had several functions with predefined sequences of actions, such as driving, turning by specific amount, spinning "intake" or "flywheel" motors, e.g. [score_matchload_close](https://github.com/abpa123/newrobot/blob/main/src/main.py#L365-L373) and [triball_one_close](https://github.com/abpa123/newrobot/blob/main/src/main.py#L375-L394). These functions were then combined in different ways for different autonomous strategies, such as when robot is placed [close to a goal](https://github.com/abpa123/newrobot/blob/main/src/main.py#L500-L509) or [far from it](https://github.com/abpa123/newrobot/blob/main/src/main.py#L512-L517).
+
+These functions, with fixed numbers for distances, angles and durations, worked OK and let us get some points during competitions, but were limiting in several ways. First, we had to find these numbers through trial and error: run the program with some initial guess, see the difference between expected and actual position, change the numbers slightly, and repeat, many times. Second, having found one set of numbers for some task, we still had to repeat the search for another, or if robot configuration changed by e.g. mounting the intake or flywheel differently. Finally, the numbers are only approximate, and the actual distances traveled by the robot may change if parts of it bend or wear out.
+
+For a future robot, we wanted to
+1. install various [VEX sensors](https://kb.vex.com/hc/en-us/articles/4401967256596-Overview-of-the-VEX-V5-Sensors) onto the robot to guide the autonomous program, and
+2. when running a program on the robot, log (save to a file) sensor readings and control actions for analysis.
+
+That analysis would help us understand the relation between requested actions and actual changes to robot state. That relation we can then reverse and use to find what action we need to request to get the robot to a state we want.
+
+For the format of the log file, we decided to use CSV, or [Comma-separated values](https://en.wikipedia.org/wiki/Comma-separated_values) file format. Usually it has a header line, with a list of the "column" names, and then - multiple lines with records, each with values, corresponding to these columns. Lists of column names and values are separated (or delimited) by commas, hence the name of the format.
+
+In our case, we realized that different sensors would have different types of values: [GPS sensor](https://www.vexrobotics.com/276-7405.html), for example, would have heading and position on the field, while [Distance sensor](https://www.vexrobotics.com/276-4852.html), would have distance to an object and its size. We now had three options for how to represent the readings in the logs:
+1. use separate files for different types of sensors, with unambiguous columns in each, or
+2. use one file, with super-set of all columns, where any sensor reading can still be captured, or
+3. use single file with generic column names like `arg_0`, `arg_1` with meaning that would depend on the sensor type for the record.
+
+We went with option 3, and now sensor readings, control actions, and some other events are logged to the same CSV file as records, one per line, and you can see an example in [gps.csv](https://github.com/hatatat-dev/telemetry/blob/main/gps.csv). That file has the following specific columns, from [RecordHeader namedtuple](https://github.com/hatatat-dev/telemetry/blob/main/shared/record.py#L7-L10):
+* `timestamp`, integer number of milliseconds since the start of the program run,
+* `thread`, name or other unique identifier of an execution thread, such as `main`,
+* `cls`, class of the entity reporting the record, such as `Inertial`,
+* `name`, name of the entity instance reporting the record, such as `motor_lf`,
+* `tag`, optional tag or label for the record,
+
+and then a variable list of generic columns, `arg_0`, `arg_1`, ... `arg_19`, that are all integer or floating-point numbers, with the meaning specific to the record entity class. For example, for `Inertial` that is
+* `arg_0` => `installed`,
+* `arg_1` => `timestamp`,
+* `arg_2` => `heading`,
+* `arg_3` => `rotation`,
+* `arg_4` => `is_calibrating`,
+* `arg_5` => `orientation_roll`,
+* `arg_6` => `orientation_pitch`,
+* `arg_7` => `orientation_yaw`,
+* `arg_8` => `gyro_rate_xaxis`,
+* `arg_9` => `gyro_rate_yaxis`,
+* `arg_10` => `gyro_rate_zaxis`,
+* `arg_11` => `acceleration_xaxis`,
+* `arg_12` => `acceleration_yaxis`,
+* `arg_13` => `acceleration_zaxis`,
+* `arg_14` => `turn_type`.
+
+Note that as different records may have different number of `arg_*` columns, some CSV file viewers or editors, like the one in GitHub, may complain about the inconsistencies. Others, like [Google Sheets](https://sheets.google.com/), [Apple Numbers](https://www.apple.com/numbers/), or [Rainbow CSV extension for VS Code](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv) simply ignore the missing values.
 
 # GPS Field Setup
 [GPS Sensor](https://www.vexrobotics.com/276-7405.html) works by tracking black-and-white patterns on the perimeter of the field, installed following [the instructions](https://kb.vex.com/hc/en-us/articles/4402678201620-Mounting-the-GPS-Field-Code-Strips). The diagram below shows `(x_position, y_position), heading°` GPS readings for the four sides of the field in our garage:
