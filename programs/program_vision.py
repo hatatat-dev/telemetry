@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
-from log import *
+from lib.log import *
 
 open_log("vision.csv")
 
-from rover import *
+from lib.rover import *
 
 GREEN_TRIBALL_SIG = Signature(1, -4805, -3921, -4363, -5601, -4643, -5122, 2.5, 0)
 

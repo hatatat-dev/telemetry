@@ -14563,6 +14563,10 @@ var So;
 
     // Function to handle line from device
     let handleLine = async (line) => {
+      if (!line) {
+        return;
+      }
+
       let openLogMatch = line.match(openLogRegExp);
       if (openLogMatch) {
         let filename = openLogMatch[1];
@@ -14572,7 +14576,7 @@ var So;
 
         let promise = logPath ? writeLog() : null;
 
-        logPath = d.Uri.joinPath(o.selectedProject.projectUri, filename);
+        logPath = d.Uri.joinPath(o.selectedProject.projectUri, "csvs", filename);
         logRecords = [];
 
         if (promise) {

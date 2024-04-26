@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
-from log import *
+from lib.log import *
 
 open_log("gps.csv")
 
-from rover import *
+from lib.rover import *
 
 
 controller.buttonA.pressed(print, ("buttonA", "pressed"))

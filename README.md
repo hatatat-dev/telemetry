@@ -39,24 +39,24 @@ The challenge here, as mentioned above, is that the [VS Code extension](https://
 
 One way to resolve that challenge is to use a microSD card: copy the `pid.py` onto one, insert it into robot's microSD card slot, and then have Python interpreter read it from there. That is not very convenient, as any changes to these shared modules now need to be copied to the robot manually, moving microSD card between computer and robot.
 
-We decided to avoid use of microSD card, and instead "preprocess" the program on the computer before it is built and downloaded to the robot by VS Code extension. To do so, we wrote another Python program [preproces.py](https://github.com/hatatat-dev/telemetry/blob/main/preprocess.py) that
-* takes the program filename, such as [shared/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_manual.py),
+We decided to avoid use of microSD card, and instead "preprocess" the program on the computer before it is built and downloaded to the robot by VS Code extension. To do so, we wrote another Python program [scripts/preproces.py](https://github.com/hatatat-dev/telemetry/blob/main/scripts/preprocess.py) that
+* takes the program filename, such as [programs/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/programs/program_manual.py),
 * parses it line-by-line, looking for `from <module> import *` statements,
 * determines the filenames corresponding to the module names,
 * substitutes the full content of the files for the import statements,
-* writes the full "preprocessed" file into a separate program in shared/preprocessed.py
+* writes the full "preprocessed" file into a separate program in build/preprocessed.py
 
 To use it, we have a zsh / bash terminal open in VS Code, where we first run something like
 ```
-./preprocess.py shared/program_manual.py
+scripts/preprocess.py programs/program_manual.py
 ```
-that updates the shared/preprocessed.py file. It should be possible to run it on Windows, too, but we haven't tried that yet.
+that updates the build/preprocessed.py file. It should be possible to run it on Windows, too, but we haven't tried that yet.
 
 That file is listed as the main Python program in [vex_project_settings.json](https://github.com/hatatat-dev/telemetry/blob/main/.vscode/vex_project_settings.json), so once generated, it can be built and downloaded to the robot, and run there, as a single file.
 
 This approach has some inconveniences:
 * the required preprocessing step before the deployment, one can forget to run it and then don't realize the robot is still running the earlier version,
-* even though the input programs have different names, like [shared/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_manual.py) or [shared/program_simple.py](https://github.com/hatatat-dev/telemetry/blob/main/shared/program_simple.py), the preprocessed program is always called the same, including on the robot, which causes confusion,
+* even though the input programs have different names, like [programs/program_manual.py](https://github.com/hatatat-dev/telemetry/blob/main/programs/program_manual.py) or [programs/program_simple.py](https://github.com/hatatat-dev/telemetry/blob/main/programs/program_simple.py), the preprocessed program is always called the same, including on the robot, which causes confusion,
 * the same code is copied from the original modules to that preprocessed.py file, and someone may accidentally be making changes to the preprocessed.py file instead of the original, in which case they will be overwritten (discarded) the next time they run the preprocessing.
 
 To avoid or at least recognize the accidental changes to the preprocessed.py file, the preprocessing tool marks that file as read-only. Also it adds a hexadecimal signature for the content of the file at the very top, so that it knows when there have been any manual changes, and refuses to overwrite them, unless explicitly requested.
@@ -79,7 +79,7 @@ In our case, we realized that different sensors would have different types of va
 2. use one file, with super-set of all columns, where any sensor reading can still be captured, or
 3. use single file with generic column names like `arg_0`, `arg_1` with meaning that would depend on the sensor type for the record.
 
-We went with option 3, and now sensor readings, control actions, and some other events are logged to the same CSV file as records, one per line, and you can see an example in [gps.csv](https://github.com/hatatat-dev/telemetry/blob/main/gps.csv). That file has the following specific columns, from [RecordHeader namedtuple](https://github.com/hatatat-dev/telemetry/blob/main/shared/record.py#L7-L10):
+We went with option 3, and now sensor readings, control actions, and some other events are logged to the same CSV file as records, one per line, and you can see an example in [csvs/gps.csv](https://github.com/hatatat-dev/telemetry/blob/main/csvs/gps.csv). That file has the following specific columns, from [RecordHeader namedtuple](https://github.com/hatatat-dev/telemetry/blob/main/lib/record.py#L7-L10):
 * `timestamp`, integer number of milliseconds since the start of the program run,
 * `thread`, name or other unique identifier of an execution thread, such as `main`,
 * `cls`, class of the entity reporting the record, such as `Inertial`,

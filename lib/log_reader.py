@@ -14,7 +14,7 @@ class LogReader:
         # Offset of the unread part of the buffer
         self.offset = 0
 
-        self.file = open(filename)
+        self.file = open(LOG_DIRECTORY + filename)
 
         # Last read line number
         self.line_number = 0

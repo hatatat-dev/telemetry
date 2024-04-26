@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
+
 import sys
-import shared.vex as vex
+import lib.vex as vex
 
 print("from vex import *")
 

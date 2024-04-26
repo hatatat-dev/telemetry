@@ -1,12 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
 import argparse
 import sys
 from pathlib import Path
 
-sys.path.append("shared")
-from shared.log_reader import LogReader
-from shared.random_walk import RandomWalkSample, read_random_walk_sample
+from lib.log_reader import LogReader
+from lib.random_walk import RandomWalkSample, read_random_walk_sample
 
 
 parser = argparse.ArgumentParser(

@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
-from log_reader import *
-from log import *
+from lib.log_reader import *
+from lib.log import *
 
 log_reader = LogReader("simple.csv")
 

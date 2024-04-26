@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
 import math
 
-from log import *
+from lib.log import *
 
 open_log("rover.csv")
 
-from rover import *
+from lib.rover import *
 
 controller.buttonUp.pressed(lambda: run_steps(get_steps_forward()))
 controller.buttonDown.pressed(lambda: run_steps(get_steps_backward()))

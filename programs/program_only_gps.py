@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
-from tele import *
-from brain import *
-from log import *
-from inertial import *
+from lib.tele import *
+from lib.brain import *
+from lib.log import *
+from lib.inertial import *
 
 open_log("only_gps.csv")
 

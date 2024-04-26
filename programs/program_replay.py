@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
-from tele import *
-from brain import *
-from log import *
-from log_reader import *
+from lib.tele import *
+from lib.brain import *
+from lib.log import *
+from lib.log_reader import *
 
 open_log("replay.csv")
 

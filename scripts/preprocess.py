@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
 import argparse
 import re
@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--preprocessed",
     type=Path,
-    default="shared/preprocessed.py",
+    default="build/preprocessed.py",
     help="name of the preprocessed file",
 )
 parser.add_argument(
@@ -92,7 +92,7 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
             return (
                 f'# begin "{path}"\n\n'
                 + re.sub(
-                    r"^[ \t]*from[ \t]+(\w+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
+                    r"^from[ \t]+([\w.]+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
                     lambda m: (
                         m[0]
                         if m[1] in external_modules
@@ -101,7 +101,16 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
                             if m[1] in skip_modules
                             else (
                                 f"# begin inline `{m[0]}`\n\n"
-                                + inner(path.parent / f"{m[1]}.py")
+                                + inner(
+                                    (
+                                        (
+                                            Path(__file__).parent.parent
+                                            if "." in m[1]
+                                            else path.parent
+                                        )
+                                        / Path(*m[1].split("."))
+                                    ).with_suffix(".py")
+                                )
                                 + f"\n# end inline `{m[0]}`"
                             )
                         )
@@ -117,7 +126,7 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
 
 # To avoid overwriting accidental edits to preprocessed file, a signature line is added at the top
 # with a hexadecimal hash of the remaining content
-SIGNATURE_PREFIX = "#!/usr/bin/env python3\n# signature "
+SIGNATURE_PREFIX = "#!/usr/bin/env -S PYTHONPATH=.:lib python3\n# signature "
 SIGNATURE_SUFFIX = "\n\n"
 SIGNATURE_LEN = 64
 
@@ -196,6 +205,9 @@ if args.sign:
 if args.preprocessed.exists():
     # Delete existing preprocessed file
     args.preprocessed.unlink()
+
+# Create parent directory for the preprocessed file, if it doesn't exist
+args.preprocessed.parent.mkdir(parents=True, exist_ok=True)
 
 with open(args.preprocessed, "w") as file:
     # Write preprocessed content to the file

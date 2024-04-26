@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S PYTHONPATH=.:lib python3
 
 import random
 
-from log import *
-from gps import *
-from motor import *
+from lib.log import *
+from lib.gps import *
+from lib.motor import *
 
 open_log("random_walk.csv")
 
-from drivetrain import *
+from lib.drivetrain import *
 
 done = False
 

@@ -5,13 +5,13 @@ from record import *
 from mock_timer import *
 from device import *
 from thread import *
+from device import *
 
 _log_writer = None
 """Writer to the log file"""
 
 _log_filename = None
 """Log filename"""
-
 
 def open_log(filename: str):
     """Open log file for writing"""
@@ -22,7 +22,7 @@ def open_log(filename: str):
     close_log()
 
     # Open file for binary (byte-based) writing
-    _log_writer = open(filename, "wb")
+    _log_writer = open(LOG_DIRECTORY + filename, "wb")
     _log_filename = filename
 
     sys.stdout.buffer.write(
