@@ -1,3 +1,4 @@
+// VEX Visual Studio Code Extension with telemetry
 // Based on vexrobotics.vexcode-0.5.0/dist/extension.js
 // Licensed under MIT License
 // Original Copyright (c) 2022 VEX Robotics
