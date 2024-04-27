@@ -1,16 +1,11 @@
-import sys
-import os
 import time
 import threading
 from typing import Callable
 
+from sdk import *
+
 # Import everything from vex.py stub
-with open(
-    os.path.expanduser(
-        "~/Library/Application Support/Code/User/globalStorage/"
-        + "vexrobotics.vexcode/sdk/python/V5/V5_1_0_1_19/vexv5/stubs/vex.py"
-    )
-) as file:
+with open(SDK_DIRECTORY / "stubs" / "vex.py") as file:
     exec(file.read(), globals())
 
 

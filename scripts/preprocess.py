@@ -203,6 +203,9 @@ if args.sign:
     content = sign_content(content)
 
 if args.preprocessed.exists():
+    # Add write permissions to the file
+    args.preprocessed.chmod(args.preprocessed.stat().st_mode | stat.S_IWUSR)
+
     # Delete existing preprocessed file
     args.preprocessed.unlink()
 
