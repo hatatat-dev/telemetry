@@ -22,7 +22,6 @@ def get_controller_state(controller: Controller, tag: str = "") -> ControllerSta
     return state
 
 
-
 def get_gps_state(gps: Gps, tag: str = "") -> GpsState:
     """Get Gps sensor state and save the telemetry record for that"""
 

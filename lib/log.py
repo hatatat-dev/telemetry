@@ -12,6 +12,7 @@ _log_writer = None
 _log_filename = None
 """Log filename"""
 
+
 def open_log(filename: str):
     """Open log file for writing"""
     global _log_writer

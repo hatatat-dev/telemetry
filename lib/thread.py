@@ -1,8 +1,6 @@
 from typing import *  # type: ignore
 import _thread
 
-_thread.get_ident()
-
 _thread_names: Dict[int, str] = {}
 
 MAIN_THREAD = "main"

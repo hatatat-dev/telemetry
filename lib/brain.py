@@ -1,6 +1,5 @@
 from vex import *
 from lib.mock_timer import *
-from lib.device import *
 
 brain = Brain()
 """Global brain instance"""

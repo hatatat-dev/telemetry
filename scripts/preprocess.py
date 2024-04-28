@@ -3,8 +3,6 @@
 import argparse
 import re
 from pathlib import Path
-import shlex
-import subprocess
 import hashlib
 import stat
 from typing import Set
@@ -16,7 +14,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--preprocessed",
     type=Path,
-    default="build/preprocessed.py",
+    default=Path("build") / "preprocessed.py",
     help="name of the preprocessed file",
 )
 parser.add_argument(
@@ -30,13 +28,6 @@ parser.add_argument(
     help="overwrite edits in preprocessed file",
 )
 parser.add_argument("--no-overwrite", dest="overwrite", action="store_false")
-parser.add_argument(
-    "--write",
-    action="store_true",
-    default=False,
-    help="write preprocessed file to VEX Brain",
-)
-parser.add_argument("--no-write", dest="write", action="store_false")
 parser.add_argument(
     "--read-only",
     action="store_true",
@@ -53,36 +44,32 @@ parser.add_argument(
 parser.add_argument("--no-executable", dest="executable", action="store_false")
 parser.add_argument(
     "--external",
-    default="vex,cte",
+    default="vex",
     help="comma-separated list of external modules to keep imported as-is",
 )
 parser.add_argument(
     "--skip",
-    default="typing",
+    default="",
     help="comma-separated list of modules to skip",
 )
 parser.add_argument(
-    "--vexcom",
-    type=Path,
-    default="~/.vscode/extensions/vexrobotics.vexcode-0.5.0/resources/tools/vexcom/osx/vexcom",
-    help="path to vexcom tool for writing to VEX Brain",
+    "--replace-with-vex",
+    default="typing",
+    help="comma-separated list of modules to replace with vex",
 )
-parser.add_argument("--slot", type=int, default=1, help="slot for writing to VEX Brain")
-parser.add_argument(
-    "--chan", type=int, default=1, help="channel for writing to VEX Brain"
-)
-parser.add_argument(
-    "--name", default="preprocessed", help="name for writing to VEX Brain"
-)
-parser.add_argument(
-    "--import-path", type=Path, default=Path(__file__).parent.parent
-)
+parser.add_argument("--import-path", type=Path, default=Path(__file__).parent.parent)
 parser.add_argument("program", type=Path)
 
 
 args = parser.parse_args()
 
-def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) -> str:
+
+def load_file(
+    path: Path,
+    external_modules: Set[str],
+    skip_modules: Set[str],
+    replace_with_vex: Set[str],
+) -> str:
     """Load a Python file, inlining content for `from <module> import *` statements"""
 
     imported_modules = set()
@@ -105,13 +92,17 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
                             f"# skip `{m[0]}`"
                             if m[1] in skip_modules
                             else (
-                                f"# begin inline `{m[0]}`\n\n"
-                                + inner(
-                                    (
-                                        args.import_path / Path(*m[1].split("."))
-                                    ).with_suffix(".py")
+                                f"from vex import *  # replace `{m[0]}`"
+                                if m[1] in replace_with_vex
+                                else (
+                                    f"# begin inline `{m[0]}`\n\n"
+                                    + inner(
+                                        (
+                                            args.import_path / Path(*m[1].split("."))
+                                        ).with_suffix(".py")
+                                    )
+                                    + f"\n# end inline `{m[0]}`"
                                 )
-                                + f"\n# end inline `{m[0]}`"
                             )
                         )
                     ),
@@ -174,10 +165,6 @@ def verify_signature(content: str) -> None:
         )
 
 
-# Expand ~ in paths to home directory
-args.vexcom = args.vexcom.expanduser()
-args.preprocessed = args.preprocessed.expanduser()
-
 if not args.overwrite and args.preprocessed.exists():
     # Verify signature of the existing preprocessed file
     with open(args.preprocessed) as file:
@@ -193,6 +180,7 @@ content = load_file(
     args.program,
     set(filter(None, args.external.split(","))),
     set(filter(None, args.skip.split(","))),
+    set(filter(None, args.replace_with_vex.split(","))),
 )
 
 
@@ -223,40 +211,3 @@ if args.executable:
     args.preprocessed.chmod(
         args.preprocessed.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
     )
-
-
-if args.write:
-    # Also try writing preprocessed file to VEX Brain
-
-    # First, try stopping VEX Brain
-    vexcom_stop = [
-        str(args.vexcom),
-        "--json",
-        "--progress",
-        "--chan",
-        str(args.chan),
-        "--stop",
-    ]
-
-    print(shlex.join(vexcom_stop))
-
-    subprocess.run(vexcom_stop)
-
-    vexcom_write = [
-        str(args.vexcom),
-        "--name",
-        args.name,
-        "--slot",
-        str(args.slot),
-        "--write",
-        str(args.preprocessed),
-        "--progress",
-        "--json",
-        "--chan",
-        str(args.chan),
-        "--progress",
-    ]
-
-    print(shlex.join(vexcom_write))
-
-    subprocess.run(vexcom_write)

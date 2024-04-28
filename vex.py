@@ -1,6 +1,6 @@
 import time
 import threading
-from typing import Callable
+from typing import *  # type: ignore
 
 from lib.sdk import *
 
@@ -51,7 +51,7 @@ class Timer:
 
 
 class Thread:
-    """Replace stub Timer with this one that uses time.time()"""
+    """Replace stub Thread with this one that uses threading.Thread"""
 
     def __init__(self, callback: Callable[..., None], arg: tuple = ()):
         self.thread = threading.Thread(target=callback, args=arg)

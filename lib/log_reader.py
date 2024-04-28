@@ -89,4 +89,4 @@ class LogReader:
                 # No method match, skip
                 continue
 
-            return header, rest # type: ignore # type
+            return header, rest  # type: ignore # type

@@ -48,7 +48,7 @@ for cls in dir(vex):
     else:
         print()
         print(
-            f'{cls}_values = ('
+            f"{cls}_values = ("
             + ", ".join(f"{cls}.{name}" if name else "None" for name in names)
             + ("," if len(names) == 1 else "")
             + ")"

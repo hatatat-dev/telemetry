@@ -1,5 +1,4 @@
 from lib.tele import *
-from lib.brain import *
 from lib.log import *
 from lib.pid import *
 from lib.drivetrain import *

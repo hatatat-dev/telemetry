@@ -21,7 +21,3 @@ def format_newline_for_stdout(buffer: bytearray):
 
 LOG_DIRECTORY = "" if IS_RUNNING_ON_DEVICE else "csvs/"
 """Directory for logs"""
-
-if not IS_RUNNING_ON_DEVICE:
-    from typing import *  # type: ignore
-    from vex import *
