@@ -1,7 +1,7 @@
 from typing import *  # type: ignore
 from collections import namedtuple
 
-from log import *
+from lib.log import *
 
 
 Gains = namedtuple(

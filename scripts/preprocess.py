@@ -1,4 +1,4 @@
-#!/usr/bin/env -S PYTHONPATH=.:lib python3
+#!/usr/bin/env -S PYTHONPATH=. python3
 
 import argparse
 import re
@@ -74,8 +74,13 @@ parser.add_argument(
 parser.add_argument(
     "--name", default="preprocessed", help="name for writing to VEX Brain"
 )
+parser.add_argument(
+    "--import-path", type=Path, default=Path(__file__).parent.parent
+)
 parser.add_argument("program", type=Path)
 
+
+args = parser.parse_args()
 
 def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) -> str:
     """Load a Python file, inlining content for `from <module> import *` statements"""
@@ -103,12 +108,7 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
                                 f"# begin inline `{m[0]}`\n\n"
                                 + inner(
                                     (
-                                        (
-                                            Path(__file__).parent.parent
-                                            if "." in m[1]
-                                            else path.parent
-                                        )
-                                        / Path(*m[1].split("."))
+                                        args.import_path / Path(*m[1].split("."))
                                     ).with_suffix(".py")
                                 )
                                 + f"\n# end inline `{m[0]}`"
@@ -126,7 +126,7 @@ def load_file(path: Path, external_modules: Set[str], skip_modules: Set[str]) ->
 
 # To avoid overwriting accidental edits to preprocessed file, a signature line is added at the top
 # with a hexadecimal hash of the remaining content
-SIGNATURE_PREFIX = "#!/usr/bin/env -S PYTHONPATH=.:lib python3\n# signature "
+SIGNATURE_PREFIX = "#!/usr/bin/env -S PYTHONPATH=. python3\n# signature "
 SIGNATURE_SUFFIX = "\n\n"
 SIGNATURE_LEN = 64
 
@@ -173,8 +173,6 @@ def verify_signature(content: str) -> None:
             f"header signature {header_signature} does not match body signature {body_signature}"
         )
 
-
-args = parser.parse_args()
 
 # Expand ~ in paths to home directory
 args.vexcom = args.vexcom.expanduser()

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S PYTHONPATH=.:lib python3
+#!/usr/bin/env -S PYTHONPATH=. python3
 
 from lib.log_reader import *
 from lib.log import *

@@ -1,7 +1,7 @@
-from record import *
-from state import *
-from log import *
-from thread import *
+from lib.record import *
+from lib.state import *
+from lib.log import *
+from lib.thread import *
 
 
 def get_controller_state(controller: Controller, tag: str = "") -> ControllerState:

@@ -1,11 +1,10 @@
-import io
 import sys
 
-from record import *
-from mock_timer import *
-from device import *
-from thread import *
-from device import *
+from lib.record import *
+from lib.mock_timer import *
+from lib.device import *
+from lib.thread import *
+from lib.device import *
 
 _log_writer = None
 """Writer to the log file"""

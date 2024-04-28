@@ -2,7 +2,7 @@ import time
 import threading
 from typing import Callable
 
-from sdk import *
+from lib.sdk import *
 
 # Import everything from vex.py stub
 with open(SDK_DIRECTORY / "stubs" / "vex.py") as file:

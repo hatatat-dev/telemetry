@@ -1,5 +1,5 @@
 from typing import *  # type: ignore
-from record import *
+from lib.record import *
 
 
 class LogReader:

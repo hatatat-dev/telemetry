@@ -1,7 +1,7 @@
 from typing import *  # type: ignore
 from collections import namedtuple
 
-from device import *
+from lib.device import *
 
 
 RecordHeader = namedtuple(

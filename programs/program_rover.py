@@ -1,4 +1,4 @@
-#!/usr/bin/env -S PYTHONPATH=.:lib python3
+#!/usr/bin/env -S PYTHONPATH=. python3
 
 import math
 

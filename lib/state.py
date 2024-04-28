@@ -3,9 +3,9 @@ import math
 
 from vex import *
 
-from record import *
-from enums import *
-from geometry import *
+from lib.record import *
+from lib.enums import *
+from lib.geometry import *
 
 
 ControllerState = namedtuple(
@@ -33,7 +33,7 @@ ControllerState = namedtuple(
 
 
 def ControllerState_from_args(args: Tuple[float, ...]):
-    """Create ControllerState from float args"""
+    """Create ControllerState from lib.float args"""
     return ControllerState(
         *map_args(
             (
@@ -105,7 +105,7 @@ InertialState = namedtuple(
 
 
 def InertialState_from_args(args: Tuple[float, ...]):
-    """Create InertialState from float args"""
+    """Create InertialState from lib.float args"""
     return InertialState(
         *map_args(
             (
@@ -182,7 +182,7 @@ def get_gps_state_position(gps_state: GpsState) -> FlatPosition:
 
 
 def GpsState_from_args(args: Tuple[float, ...]):
-    """Create GpsState from float args"""
+    """Create GpsState from lib.float args"""
     return GpsState(
         *map_args(
             (
@@ -265,7 +265,7 @@ MotorState = namedtuple(
 
 
 def MotorState_from_args(args: Tuple[float, ...]):
-    """Create MotorState from float args"""
+    """Create MotorState from lib.float args"""
     return MotorState(
         *map_args(
             (

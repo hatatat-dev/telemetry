@@ -1,7 +1,7 @@
-from tele import *
-from brain import *
-from inertial import *
-from geometry import *
+from lib.tele import *
+from lib.brain import *
+from lib.inertial import *
+from lib.geometry import *
 
 # Red cartridge: GearSetting.RATIO_36_1, 100 RPM
 # Green cartridge: GearSetting.RATIO_18_1, 200 RPM

@@ -1,8 +1,9 @@
 import math
 from collections import namedtuple
 from typing import *  # type: ignore
-from log_reader import *
-from state import *
+
+from lib.log_reader import *
+from lib.state import *
 
 
 RandomWalkSample = namedtuple(

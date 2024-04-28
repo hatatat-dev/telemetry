@@ -1,9 +1,9 @@
-from tele import *
-from brain import *
-from log import *
-from pid import *
-from drivetrain import *
-from motor import *
+from lib.tele import *
+from lib.brain import *
+from lib.log import *
+from lib.pid import *
+from lib.drivetrain import *
+from lib.motor import *
 
 
 def get_volts_for_axis_value(value: int) -> float:
