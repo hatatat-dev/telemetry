@@ -1,6 +1,7 @@
 from tele import *
 from brain import *
 from inertial import *
+from geometry import *
 
 # Red cartridge: GearSetting.RATIO_36_1, 100 RPM
 # Green cartridge: GearSetting.RATIO_18_1, 200 RPM
@@ -9,6 +10,10 @@ from inertial import *
 MOTOR_DIRECTION = False
 
 INERTIAL_ROTATION_SCALE = 1.0135
+
+DRIVERTRAIN_DIMENSIONS = FlatDimensions(460, 460)
+
+DRIVERTRAIN_RADIUS = compute_dimensions_radius(DRIVERTRAIN_DIMENSIONS)
 
 controller = TeleController(PRIMARY)
 inertial = TeleInertial(Ports.PORT5, rotation_scale=INERTIAL_ROTATION_SCALE)

@@ -5,6 +5,7 @@ from vex import *
 
 from record import *
 from enums import *
+from geometry import *
 
 
 ControllerState = namedtuple(
@@ -150,12 +151,6 @@ def get_inertial_state_no_record(inertial: Inertial) -> InertialState:
     )
 
 
-def compute_inertial_angle(
-    inertial_from: InertialState, inertial_to: InertialState
-) -> float:
-    return (inertial_to.heading - inertial_from.heading + 180) % 360 - 180
-
-
 GpsState = namedtuple(
     "GpsState",
     [
@@ -180,6 +175,10 @@ GpsState = namedtuple(
     ],
 )
 """State of Gps"""
+
+
+def get_gps_state_position(gps_state: GpsState) -> FlatPosition:
+    return FlatPosition(gps_state.x_position, gps_state.y_position, gps_state.heading)
 
 
 def GpsState_from_args(args: Tuple[float, ...]):
@@ -240,10 +239,6 @@ def compute_gps_distance(gps_from: GpsState, gps_to: GpsState) -> float:
         (gps_to.x_position - gps_from.x_position) ** 2
         + (gps_to.y_position - gps_from.y_position) ** 2
     )
-
-
-def compute_gps_angle(gps_from: GpsState, gps_to: GpsState) -> float:
-    return (gps_to.heading - gps_from.heading + 180) % 360 - 180
 
 
 MotorState = namedtuple(

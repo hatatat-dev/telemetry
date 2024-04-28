@@ -3,8 +3,9 @@
 import random
 
 from lib.log import *
-from lib.gps import *
+from lib.geometry import *
 from lib.motor import *
+from lib.drivetrain import *
 
 open_log("random_walk.csv")
 
@@ -28,9 +29,9 @@ FINAL_MS = 2000
 
 INTERVAL_MS = 1000
 
-DISTANCE_BUFFER = 10 * 25
+RANGE_BUFFER = 250
 
-WIDTH_FOR_DISTANCE = 18 * 25
+VOLTS_TO_SPEED = 0.13
 
 sample = 0
 
@@ -44,32 +45,27 @@ while not done:
     inertial.set_heading(gps_before.heading)
     inertial_before = inertial.get_state(tag)
 
-    distance_limit_forward = compute_distance_forward(
-        gps_before.heading,
-        gps_before.x_position,
-        gps_before.y_position,
-        WIDTH_FOR_DISTANCE,
-    )
-    distance_limit_reverse = compute_distance_reverse(
-        gps_before.heading,
-        gps_before.x_position,
-        gps_before.y_position,
-        WIDTH_FOR_DISTANCE,
+    position_before = get_gps_state_position(gps_before)
+
+    range_forward = compute_heading_range(position_before, DRIVERTRAIN_RADIUS)
+
+    range_reverse = compute_heading_range(
+        reverse_position_heading(position_before), DRIVERTRAIN_RADIUS
     )
 
     volts = random.randrange(1, int(MAX_MOTOR_VOLTS * 10)) / 10.0
     duration_ms = random.randrange(1, 3 * 20) * 50
 
-    distance_estimate = (volts / MAX_MOTOR_VOLTS) * (
-        duration_ms / 1000.0
-    ) * GPS_HALF_FIELD_SIZE + DISTANCE_BUFFER
+    speed = volts * VOLTS_TO_SPEED
+
+    distance_estimate = speed * duration_ms
 
     directions = [(FORWARD, REVERSE), (REVERSE, FORWARD)]
 
-    if distance_estimate < distance_limit_forward:
+    if distance_estimate < range_forward:
         directions.append((FORWARD, FORWARD))
 
-    if distance_estimate < distance_limit_reverse:
+    if distance_estimate < range_reverse:
         directions.append((REVERSE, REVERSE))
 
     left_direction, right_direction = random.choice(directions)
@@ -78,8 +74,8 @@ while not done:
         ("RandomWalk", "random_walk"),
         "start",
         tag,
-        distance_limit_forward,
-        distance_limit_reverse,
+        range_forward,
+        range_reverse,
         distance_estimate,
         left_direction,  # type: ignore
         right_direction,  # type: ignore

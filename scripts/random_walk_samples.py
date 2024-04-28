@@ -1,7 +1,6 @@
 #!/usr/bin/env -S PYTHONPATH=.:lib python3
 
 import argparse
-import sys
 from pathlib import Path
 
 from lib.log_reader import LogReader

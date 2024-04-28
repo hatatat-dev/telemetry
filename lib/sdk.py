@@ -4,7 +4,7 @@ from pathlib import Path
 
 APPLICATION_SUPPORT_DIRECTORY = Path(
     os.path.expandvars(
-        "%APPDATA%" if sys.platform == "win32" else "$HOME/Library/ApplicationSupport"
+        "%APPDATA%" if sys.platform == "win32" else "$HOME/Library/Application Support"
     )
 )
 
