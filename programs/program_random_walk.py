@@ -9,8 +9,6 @@ from lib.drivetrain import *
 
 open_log("random_walk.csv")
 
-from lib.drivetrain import *
-
 done = False
 
 

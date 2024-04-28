@@ -48,14 +48,9 @@ parser.add_argument(
     help="comma-separated list of external modules to keep imported as-is",
 )
 parser.add_argument(
-    "--skip",
-    default="",
-    help="comma-separated list of modules to skip",
-)
-parser.add_argument(
-    "--replace-with-vex",
+    "--implicit",
     default="typing",
-    help="comma-separated list of modules to replace with vex",
+    help="comma-separated list of modules that are available implicitly with micropython",
 )
 parser.add_argument("--import-path", type=Path, default=Path(__file__).parent.parent)
 parser.add_argument("program", type=Path)
@@ -64,56 +59,10 @@ parser.add_argument("program", type=Path)
 args = parser.parse_args()
 
 
-def load_file(
-    path: Path,
-    external_modules: Set[str],
-    skip_modules: Set[str],
-    replace_with_vex: Set[str],
-) -> str:
-    """Load a Python file, inlining content for `from <module> import *` statements"""
-
-    imported_modules = set()
-
-    def inner(path: Path) -> str:
-        if path in imported_modules:
-            return "# already imported\n"
-
-        with open(path) as file:
-            imported_modules.add(path)
-
-            return (
-                f'# begin "{path}"\n\n'
-                + re.sub(
-                    r"^from[ \t]+([\w.]+)[ \t]+import[ \t]*\*[ \t]*(#.*)?$",
-                    lambda m: (
-                        m[0]
-                        if m[1] in external_modules
-                        else (
-                            f"# skip `{m[0]}`"
-                            if m[1] in skip_modules
-                            else (
-                                f"from vex import *  # replace `{m[0]}`"
-                                if m[1] in replace_with_vex
-                                else (
-                                    f"# begin inline `{m[0]}`\n\n"
-                                    + inner(
-                                        (
-                                            args.import_path / Path(*m[1].split("."))
-                                        ).with_suffix(".py")
-                                    )
-                                    + f"\n# end inline `{m[0]}`"
-                                )
-                            )
-                        )
-                    ),
-                    file.read(),
-                    flags=re.MULTILINE,
-                )
-                + f'\n# end "{path}"\n'
-            )
-
-    return inner(path)
-
+IMPORT_PATTERN = re.compile(
+    r"^from[ \t]+(?P<module>[\w.]+)[ \t]+import[ \t]*\*(?P<comment>[ \t]*(?:#.*)?)$",
+    re.MULTILINE,
+)
 
 # To avoid overwriting accidental edits to preprocessed file, a signature line is added at the top
 # with a hexadecimal hash of the remaining content
@@ -175,13 +124,57 @@ if not args.overwrite and args.preprocessed.exists():
                 f"will not overwrite possible edits in the existing file {args.preprocessed}: {e}"
             )
 
-# Load program, inlining `from <module> import *` statements
-content = load_file(
-    args.program,
-    set(filter(None, args.external.split(","))),
-    set(filter(None, args.skip.split(","))),
-    set(filter(None, args.replace_with_vex.split(","))),
-)
+imported_modules = set()
+
+external_modules = set(filter(None, args.external.split(",")))
+
+implicit_modules = set(filter(None, args.implicit.split(",")))
+
+
+def import_module(module: str, comment: str = "") -> str:
+    if module in imported_modules:
+        return f"# module {module} already imported\n"
+
+    imported_modules.add(module)
+
+    if module in external_modules:
+        return f"# external module {module}\n" + f"from {module} import *{comment}\n"
+
+    if module in implicit_modules:
+        return (
+            f"# implicit module {module}\n"
+            "from sys import implementation as _sys_implementation\n"
+            + 'if _sys_implementation.name != "micropython":\n'
+            + f"    from {module} import *{comment}\n"
+        )
+
+    module_path: Path = (args.import_path / Path(*module.split("."))).with_suffix(".py")
+
+    if not module_path.exists():
+        raise Exception(f"Module {module} file does not exist at {module_path}")
+
+    with open(module_path) as module_file:
+        return (
+            f"# begin module {module}\n\n"
+            + IMPORT_PATTERN.sub(
+                lambda m: import_module(m["module"], m["comment"]),
+                module_file.read(),
+            )
+            + f"\n# end module {module}\n"
+        )
+
+
+if not args.program.exists():
+    raise Exception(f"Program does not exist at {args.program}")
+
+with open(args.program) as program_file:
+    content = (
+        f"# begin program {args.program}\n\n"
+        + IMPORT_PATTERN.sub(
+            lambda m: import_module(m["module"], m["comment"]), program_file.read()
+        )
+        + f"\n# end program {args.program}\n"
+    )
 
 
 if args.sign:

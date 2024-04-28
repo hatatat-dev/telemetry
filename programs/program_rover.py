@@ -3,10 +3,9 @@
 import math
 
 from lib.log import *
+from lib.rover import *
 
 open_log("rover.csv")
-
-from lib.rover import *
 
 controller.buttonUp.pressed(lambda: run_steps(get_steps_forward()))
 controller.buttonDown.pressed(lambda: run_steps(get_steps_backward()))

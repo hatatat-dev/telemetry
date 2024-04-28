@@ -1,4 +1,5 @@
 from typing import *  # type: ignore
+
 from lib.record import *
 
 
