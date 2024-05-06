@@ -14539,6 +14539,10 @@ var So;
       .get(i.Extension.Settings.buildTypeID, d.ConfigurationTarget.Global)
       .toString();
 
+
+    // Log filename
+    let logFilename = null;
+
     // Path to log file
     let logPath = null;
 
@@ -14556,11 +14560,14 @@ var So;
     let filenameRegExp = /^\w+\.csv$/i;
 
     // Helper async function to write log records to log path
-    let writeLog = async () =>
+    let writeLog = async () => {
+      l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
+
       await d.workspace.fs.writeFile(
         logPath,
-        new TextEncoder().encode(logRecords.join("")),
+        new TextEncoder().encode(logRecords?.join("") ?? ""),
       );
+    };
 
     // Function to handle line from device
     let handleLine = async (line) => {
@@ -14577,8 +14584,11 @@ var So;
 
         let promise = logPath ? writeLog() : null;
 
+        logFilename = filename;
         logPath = d.Uri.joinPath(o.selectedProject.projectUri, "csvs", filename);
         logRecords = [];
+
+        l.write(`Telemetry: set log filename to ${logFilename}\r\n`);
 
         if (promise) {
           await promise;
@@ -14593,6 +14603,8 @@ var So;
 
           logPath = null;
           logRecords = [];
+
+          l.write(`Telemetry: reset log path to null\r\n`);
 
           await promise;
         }

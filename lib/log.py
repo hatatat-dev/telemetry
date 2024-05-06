@@ -26,7 +26,11 @@ def open_log(filename: str):
     _log_filename = filename
 
     sys.stdout.buffer.write(
-        b'open_log("' + filename.encode() + b'")' + NEWLINE_FOR_STDOUT
+        NEWLINE_FOR_STDOUT
+        + b'open_log("'
+        + filename.encode()
+        + b'")'
+        + NEWLINE_FOR_STDOUT
     )
 
     # Write CSV header
@@ -61,7 +65,9 @@ def flush_log():
     if _log_writer:
         _log_writer.flush()
 
-        sys.stdout.buffer.write(b"flush_log()" + NEWLINE_FOR_STDOUT)
+        sys.stdout.buffer.write(
+            NEWLINE_FOR_STDOUT + b"flush_log()" + NEWLINE_FOR_STDOUT
+        )
 
 
 def close_log():
@@ -74,7 +80,9 @@ def close_log():
         _log_writer = None
         _log_filename = None
 
-        sys.stdout.buffer.write(b"close_log()" + NEWLINE_FOR_STDOUT)
+        sys.stdout.buffer.write(
+            NEWLINE_FOR_STDOUT + b"close_log()" + NEWLINE_FOR_STDOUT
+        )
 
 
 def log_record(record: Record):

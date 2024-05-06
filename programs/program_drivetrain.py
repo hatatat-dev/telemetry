@@ -1,7 +1,6 @@
 #!/usr/bin/env -S PYTHONPATH=. python3
 
 from lib.tele import *
-from lib.brain import *
 from lib.log import *
 from lib.inertial import *
 
@@ -12,6 +11,7 @@ inertial = TeleInertial(Ports.PORT2)
 motor_a = TeleMotor(Ports.PORT10, GearSetting.RATIO_18_1, False, name="motor_a")
 motor_b = TeleMotor(Ports.PORT20, GearSetting.RATIO_18_1, False, name="motor_b")
 
+brain = Brain()
 
 brain.screen.print("clear", get_log_filename())
 brain.screen.next_row()

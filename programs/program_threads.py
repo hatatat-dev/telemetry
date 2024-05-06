@@ -1,7 +1,6 @@
 #!/usr/bin/env -S PYTHONPATH=. python3
 
 from lib.tele import *
-from lib.brain import *
 from lib.log import *
 
 open_log("threads.csv")

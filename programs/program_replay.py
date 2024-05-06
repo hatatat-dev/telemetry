@@ -1,30 +1,15 @@
 #!/usr/bin/env -S PYTHONPATH=. python3
 
 from lib.tele import *
-from lib.brain import *
 from lib.log import *
 from lib.log_reader import *
+from lib.drivetrain import *
 
 open_log("replay.csv")
 
 MOTOR_DIRECTION = False
 
-targets = {
-    "Motor": {
-        "motor_lf": TeleMotor(
-            Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
-        ),
-        "motor_lb": TeleMotor(
-            Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
-        ),
-        "motor_rf": TeleMotor(
-            Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
-        ),
-        "motor_rb": TeleMotor(
-            Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
-        ),
-    },
-}
+targets = {"Motor": motors}
 
 for motor in targets.get("Motor", {}).values():
     _ = get_motor_state(motor)

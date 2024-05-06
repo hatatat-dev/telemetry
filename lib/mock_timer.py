@@ -1,3 +1,5 @@
+from lib.device import *
+
 class MockTimer:
     """Mock timer that just increments the latest time value each time"""
 
@@ -10,7 +12,7 @@ class MockTimer:
         return self.latest_time
 
 
-_timer = MockTimer()
+_timer = Brain().timer if IS_RUNNING_ON_DEVICE else MockTimer()  # type: ignore
 """Global timer"""
 
 
