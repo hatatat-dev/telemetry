@@ -14565,13 +14565,30 @@ var So;
     // time writes it in its entirety to the file
     // See https://github.com/microsoft/vscode/issues/107360
     let writeLog = async () => {
-      l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
+      if (logPath) {
+        l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
 
-      await d.workspace.fs.writeFile(
-        logPath,
-        new TextEncoder().encode(logRecords?.join("") ?? ""),
-      );
+        await d.workspace.fs.writeFile(
+          logPath,
+          new TextEncoder().encode(logRecords?.join("") ?? ""),
+        );
+      }
     };
+
+    // Helper async function to write log records and close log file
+    let closeLog = async () => {
+      if (logPath) {
+        let promise = writeLog();
+
+        logPath = null;
+        logRecords = [];
+
+        l.write(`Telemetry: reset log path to null\r\n`);
+
+        await promise;
+      }
+    };
+
 
     // Function to handle line from device
     let handleLine = async (line) => {
@@ -14586,7 +14603,7 @@ var So;
           throw new Error(`Unexpected filename for openLog: ${filename}`);
         }
 
-        let promise = logPath ? writeLog() : null;
+        let promise = writeLog();
 
         logFilename = filename;
         logPath = d.Uri.joinPath(o.selectedProject.projectUri, "csvs", filename);
@@ -14594,32 +14611,19 @@ var So;
 
         l.write(`Telemetry: set log filename to ${logFilename}\r\n`);
 
-        if (promise) {
-          await promise;
-        }
+        await promise;
 
         return;
       }
 
       if (line.match(closeLogRegExp)) {
-        if (logPath) {
-          let promise = writeLog();
-
-          logPath = null;
-          logRecords = [];
-
-          l.write(`Telemetry: reset log path to null\r\n`);
-
-          await promise;
-        }
+        await closeLog();
 
         return;
       }
 
       if (line.match(flushLogRegExp)) {
-        if (logPath) {
-          await writeLog();
-        }
+        await writeLog();
 
         return;
       }
@@ -14700,7 +14704,7 @@ var So;
             C.userPort.write(T);
           }),
         e.selectedDevice?.userPort &&
-          e.selectedDevice.userPort.registerCallback("OnRecieveData", (T) => {
+          (e.selectedDevice.userPort.registerCallback("OnRecieveData", (T) => {
             T !== void 0 &&
               ($.deviceWSList.length &&
                 e.selectedDevice instanceof H &&
@@ -14711,8 +14715,11 @@ var So;
               p.write(T),
               $.deviceWSList.forEach((me) => me[0].send(T))),
               handleInput(T);
-          }));
+          }),
+          e.selectedDevice.userPort.registerCallback("OnClose", closeLog))
+        );
   }
+
   async function re(m) {
     if (
       (d.commands.executeCommand(
