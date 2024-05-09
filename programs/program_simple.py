@@ -50,6 +50,7 @@ for step in range(5):
     get_inertial_state(inertial, "test")
     get_motor_state(motor_a, "test")
     motor_a.spin(DirectionType.FORWARD if step % 2 == 0 else DirectionType.REVERSE)
+    flush_log()
     sleep(1000)
 
 motor_a.stop()

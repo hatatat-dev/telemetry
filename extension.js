@@ -14560,6 +14560,10 @@ var So;
     let filenameRegExp = /^\w+\.csv$/i;
 
     // Helper async function to write log records to log path
+    // vscode.workspace.fs.writeFile can overwrite the entire file, but currently cannot
+    // append to a file, so the extension here keeps the total list of records, and each
+    // time writes it in its entirety to the file
+    // See https://github.com/microsoft/vscode/issues/107360
     let writeLog = async () => {
       l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
 
@@ -14622,7 +14626,17 @@ var So;
 
       if (line.match(headerRegExp) || line.match(recordRegExp)) {
         if (logPath) {
-          if (logRecords.push(line + "\n") % 10 === 0) {
+          // Count the number of records, including the new one
+          let count = logRecords.push(line + "\n");
+
+          // Determine the period for flushing the records to file
+          let period = 1;
+
+          while (period * 10 < count) {
+            period = period * 10;
+          }
+
+          if (count % period === 0) {
             // Flush periodically
             await writeLog();
           }

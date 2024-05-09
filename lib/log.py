@@ -1,7 +1,7 @@
 import sys
 
 from lib.record import *
-from lib.mock_timer import *
+from lib.timestamp import *
 from lib.device import *
 from lib.thread import *
 from lib.device import *
@@ -68,6 +68,7 @@ def flush_log():
         sys.stdout.buffer.write(
             NEWLINE_FOR_STDOUT + b"flush_log()" + NEWLINE_FOR_STDOUT
         )
+        sys.stdout.buffer.flush()
 
 
 def close_log():
