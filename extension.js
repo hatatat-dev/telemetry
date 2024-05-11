@@ -13430,6 +13430,116 @@ var So;
     P = !1,
     x = !1,
     $;
+
+  // Log filename
+  let logFilename = null;
+
+  // Path to log file
+  let logPath = null;
+
+  // Records for the log file
+  let logRecords = null;
+
+  // Patterns for various expected lines
+  let openLogRegExp = /^open_log\("([^"]*)"\)$/;
+  let closeLogRegExp = /^close_log\(\)$/;
+  let flushLogRegExp = /^flush_log\(\)$/;
+  let headerRegExp = /^timestamp,thread,cls,name,method,tag.*$/;
+  let recordRegExp = /^\d+,\w+,\w+,\w+,\w*,\w*.*/;
+
+  // Pattern for allowed log filename
+  let filenameRegExp = /^\w+\.csv$/i;
+
+  // Helper async function to write log records to log path
+  // vscode.workspace.fs.writeFile can overwrite the entire file, but currently cannot
+  // append to a file, so the extension here keeps the total list of records, and each
+  // time writes it in its entirety to the file
+  // See https://github.com/microsoft/vscode/issues/107360
+  let writeLog = async () => {
+    if (logPath) {
+      l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
+
+      await d.workspace.fs.writeFile(
+        logPath,
+        new TextEncoder().encode(logRecords?.join("") ?? ""),
+      );
+    }
+  };
+
+  // Helper async function to write log records and close log file
+  let closeLog = async () => {
+    if (logPath) {
+      let promise = writeLog();
+
+      logPath = null;
+      logRecords = [];
+
+      l.write(`Telemetry: reset log path to null\r\n`);
+
+      await promise;
+    }
+  };
+
+
+  // Function to handle line from device
+  let handleLine = async (line) => {
+    if (!line) {
+      return;
+    }
+
+    let openLogMatch = line.match(openLogRegExp);
+    if (openLogMatch) {
+      let filename = openLogMatch[1];
+      if (!filename.match(filenameRegExp)) {
+        throw new Error(`Unexpected filename for openLog: ${filename}`);
+      }
+
+      let promise = writeLog();
+
+      logFilename = filename;
+      logPath = d.Uri.joinPath(o.selectedProject.projectUri, "csvs", filename);
+      logRecords = [];
+
+      l.write(`Telemetry: set log filename to ${logFilename}\r\n`);
+
+      await promise;
+
+      return;
+    }
+
+    if (line.match(closeLogRegExp)) {
+      await closeLog();
+
+      return;
+    }
+
+    if (line.match(flushLogRegExp)) {
+      await writeLog();
+
+      return;
+    }
+
+    if (line.match(headerRegExp) || line.match(recordRegExp)) {
+      if (logPath) {
+        // Count the number of records, including the new one
+        let count = logRecords.push(line + "\n");
+
+        // Determine the period for flushing the records to file
+        let period = 1;
+
+        while (period * 10 * 2 < count) {
+          period = period * 10;
+        }
+
+        if (count % period === 0) {
+          // Flush periodically
+          await writeLog();
+        }
+      }
+      return;
+    }
+  };
+
   async function N(m, u) {
     (i.Extension.context = m),
       (y = m),
@@ -14315,7 +14425,8 @@ var So;
     (b += `\r
 `),
       t.appendLine(b),
-      p && p?.write(b, v);
+      p && p?.write(b, v),
+      writeLog();
   }
   async function Ze(m, u = !0, b = !0) {
     if (!(e.selectedAIDevice instanceof Ue)) return;
@@ -14539,116 +14650,6 @@ var So;
       .get(i.Extension.Settings.buildTypeID, d.ConfigurationTarget.Global)
       .toString();
 
-
-    // Log filename
-    let logFilename = null;
-
-    // Path to log file
-    let logPath = null;
-
-    // Records for the log file
-    let logRecords = null;
-
-    // Patterns for various expected lines
-    let openLogRegExp = /^open_log\("([^"]*)"\)$/;
-    let closeLogRegExp = /^close_log\(\)$/;
-    let flushLogRegExp = /^flush_log\(\)$/;
-    let headerRegExp = /^timestamp,thread,cls,name,method,tag.*$/;
-    let recordRegExp = /^\d+,\w+,\w+,\w+,\w*,\w*.*/;
-
-    // Pattern for allowed log filename
-    let filenameRegExp = /^\w+\.csv$/i;
-
-    // Helper async function to write log records to log path
-    // vscode.workspace.fs.writeFile can overwrite the entire file, but currently cannot
-    // append to a file, so the extension here keeps the total list of records, and each
-    // time writes it in its entirety to the file
-    // See https://github.com/microsoft/vscode/issues/107360
-    let writeLog = async () => {
-      if (logPath) {
-        l.write(`Telemetry: write ${logRecords?.length} total records to ${logFilename}\r\n`);
-
-        await d.workspace.fs.writeFile(
-          logPath,
-          new TextEncoder().encode(logRecords?.join("") ?? ""),
-        );
-      }
-    };
-
-    // Helper async function to write log records and close log file
-    let closeLog = async () => {
-      if (logPath) {
-        let promise = writeLog();
-
-        logPath = null;
-        logRecords = [];
-
-        l.write(`Telemetry: reset log path to null\r\n`);
-
-        await promise;
-      }
-    };
-
-
-    // Function to handle line from device
-    let handleLine = async (line) => {
-      if (!line) {
-        return;
-      }
-
-      let openLogMatch = line.match(openLogRegExp);
-      if (openLogMatch) {
-        let filename = openLogMatch[1];
-        if (!filename.match(filenameRegExp)) {
-          throw new Error(`Unexpected filename for openLog: ${filename}`);
-        }
-
-        let promise = writeLog();
-
-        logFilename = filename;
-        logPath = d.Uri.joinPath(o.selectedProject.projectUri, "csvs", filename);
-        logRecords = [];
-
-        l.write(`Telemetry: set log filename to ${logFilename}\r\n`);
-
-        await promise;
-
-        return;
-      }
-
-      if (line.match(closeLogRegExp)) {
-        await closeLog();
-
-        return;
-      }
-
-      if (line.match(flushLogRegExp)) {
-        await writeLog();
-
-        return;
-      }
-
-      if (line.match(headerRegExp) || line.match(recordRegExp)) {
-        if (logPath) {
-          // Count the number of records, including the new one
-          let count = logRecords.push(line + "\n");
-
-          // Determine the period for flushing the records to file
-          let period = 1;
-
-          while (period * 10 < count) {
-            period = period * 10;
-          }
-
-          if (count % period === 0) {
-            // Flush periodically
-            await writeLog();
-          }
-        }
-        return;
-      }
-    };
-
     // Incomplete line from the input
     let incompleteLine = null;
 
@@ -14704,7 +14705,7 @@ var So;
             C.userPort.write(T);
           }),
         e.selectedDevice?.userPort &&
-          (e.selectedDevice.userPort.registerCallback("OnRecieveData", (T) => {
+          e.selectedDevice.userPort.registerCallback("OnRecieveData", (T) => {
             T !== void 0 &&
               ($.deviceWSList.length &&
                 e.selectedDevice instanceof H &&
@@ -14715,11 +14716,8 @@ var So;
               p.write(T),
               $.deviceWSList.forEach((me) => me[0].send(T))),
               handleInput(T);
-          }),
-          e.selectedDevice.userPort.registerCallback("OnClose", closeLog))
-        );
+          }));
   }
-
   async function re(m) {
     if (
       (d.commands.executeCommand(
@@ -15255,6 +15253,7 @@ var So;
             let C = JSON.parse(v.message);
             return E(C), C;
           })
+          .finally(closeLog)
       );
   }
   async function ve(m) {
