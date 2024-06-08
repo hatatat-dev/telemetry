@@ -46,4 +46,15 @@ controller.buttonY.pressed(turn_to_center)
 
 controller.buttonX.pressed(close_log)
 
+
+def motors_temperature_thread_func():
+    while is_log_open():
+        log_motors_temperature()
+        sleep(1000)
+
+
 calibrate_inertial_and_gps()
+
+motors_temperature_thread = TeleThread(
+    motors_temperature_thread_func, (), "motors_temperature_thread"
+)

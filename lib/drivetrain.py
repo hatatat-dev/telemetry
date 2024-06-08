@@ -6,7 +6,7 @@ from lib.geometry import *
 # Green cartridge: GearSetting.RATIO_18_1, 200 RPM
 # Blue cartridge: GearSetting.RATIO_6_1, 600 RPM
 
-MOTOR_DIRECTION = False
+MOTOR_DIRECTION = True
 
 INERTIAL_ROTATION_SCALE = 1.0135
 
@@ -64,3 +64,7 @@ def calibrate_inertial_and_gps():
     _ = gps.get_state()
 
     inertial.set_heading(gps.heading())
+
+def get_motors_temperature() -> Tuple[float, ...]:
+    """Get temperature of all motors as a single Tuple of floats"""
+    return tuple(map(lambda motor: motor.temperature(), motors.values()))

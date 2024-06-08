@@ -180,3 +180,6 @@ def pid_turn(angle: float):
 
         # Wait until the next PID controller iteration
         sleep(TURN_SLEEP_MS, TimeUnits.MSEC)
+
+def log_motors_temperature() -> None:
+    log_method_call(("Motors", "motors"), "temperature", "", *get_motors_temperature())
