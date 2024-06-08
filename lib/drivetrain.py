@@ -15,30 +15,38 @@ DRIVERTRAIN_DIMENSIONS = FlatDimensions(460, 460)
 DRIVERTRAIN_RADIUS = compute_dimensions_radius(DRIVERTRAIN_DIMENSIONS)
 
 controller = TeleController(PRIMARY)
-inertial = TeleInertial(Ports.PORT5, rotation_scale=INERTIAL_ROTATION_SCALE)
+inertial = TeleInertial(Ports.PORT18, rotation_scale=INERTIAL_ROTATION_SCALE)
 
 motor_lf = TeleMotor(
-    Ports.PORT11, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lf"
+    Ports.PORT11, GearSetting.RATIO_6_1, MOTOR_DIRECTION, name="motor_lf"
+)
+motor_lc = TeleMotor(
+    Ports.PORT16, GearSetting.RATIO_6_1, MOTOR_DIRECTION, name="motor_cf"
 )
 motor_lb = TeleMotor(
-    Ports.PORT20, GearSetting.RATIO_18_1, MOTOR_DIRECTION, name="motor_lb"
+    Ports.PORT20, GearSetting.RATIO_6_1, MOTOR_DIRECTION, name="motor_lb"
 )
 
 motor_rf = TeleMotor(
-    Ports.PORT1, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rf"
+    Ports.PORT1, GearSetting.RATIO_6_1, not MOTOR_DIRECTION, name="motor_rf"
+)
+motor_rc = TeleMotor(
+    Ports.PORT6, GearSetting.RATIO_6_1, not MOTOR_DIRECTION, name="motor_rc"
 )
 motor_rb = TeleMotor(
-    Ports.PORT10, GearSetting.RATIO_18_1, not MOTOR_DIRECTION, name="motor_rb"
+    Ports.PORT10, GearSetting.RATIO_6_1, not MOTOR_DIRECTION, name="motor_rb"
 )
 
 motors = {
     "motor_lf": motor_lf,
+    "motor_lc": motor_lc,
     "motor_lb": motor_lb,
     "motor_rf": motor_rf,
+    "motor_rc": motor_rc,
     "motor_rb": motor_rb,
 }
 
-gps = TeleGps(Ports.PORT6, name="gps")
+gps = TeleGps(Ports.PORT19, name="gps")
 
 
 def calibrate_inertial_and_gps():

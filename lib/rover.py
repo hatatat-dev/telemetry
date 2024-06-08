@@ -38,8 +38,8 @@ def control_motors_by_axis(axis_name: str, *motors: TeleMotor):
     axis.changed(axis_changed)
 
 
-control_motors_by_axis("axis3", motor_lf, motor_lb)
-control_motors_by_axis("axis2", motor_rf, motor_rb)
+control_motors_by_axis("axis3", motor_lf, motor_lc, motor_lb)
+control_motors_by_axis("axis2", motor_rf, motor_rc, motor_rb)
 
 
 def run_steps(steps):
@@ -168,8 +168,10 @@ def pid_turn(angle: float):
 
         # PID controller already reports telemetry; avoid telemetry overhead here
         motor_lf.no_log_spin_volts(DirectionType.FORWARD, voltage)  # type: ignore
+        motor_lc.no_log_spin_volts(DirectionType.FORWARD, voltage)  # type: ignore
         motor_lb.no_log_spin_volts(DirectionType.FORWARD, voltage)  # type: ignore
         motor_rf.no_log_spin_volts(DirectionType.FORWARD, -voltage)  # type: ignore
+        motor_rc.no_log_spin_volts(DirectionType.FORWARD, -voltage)  # type: ignore
         motor_rb.no_log_spin_volts(DirectionType.FORWARD, -voltage)  # type: ignore
 
         if done:
