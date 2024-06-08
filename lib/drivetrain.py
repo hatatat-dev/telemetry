@@ -46,6 +46,9 @@ motors = {
     "motor_rb": motor_rb,
 }
 
+# in MicroPython, order of the elements in Dict is not guaranteed
+motors_order = ["motor_lf", "motor_lc", "motor_lb", "motor_rf", "motor_rc", "motor_rb"]
+
 gps = TeleGps(Ports.PORT19, name="gps")
 
 
@@ -65,6 +68,7 @@ def calibrate_inertial_and_gps():
 
     inertial.set_heading(gps.heading())
 
+
 def get_motors_temperature() -> Tuple[float, ...]:
     """Get temperature of all motors as a single Tuple of floats"""
-    return tuple(map(lambda motor: motor.temperature(), motors.values()))
+    return tuple(map(lambda motor: motors[motor].temperature(), motors_order))
